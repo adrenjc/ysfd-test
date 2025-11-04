@@ -10,7 +10,7 @@
     "build:prod": "npm run clean && cross-env NODE_ENV=production next build",
     "start:dev": "next dev",
     "start:static": "npx serve@latest out -p 3000",
-    "lint": "next lint",
+    "lint": "next lint --max-warnings=0",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",

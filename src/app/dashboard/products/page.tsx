@@ -248,6 +248,8 @@ export default function ProductsPage() {
     onClose: onCreateClose,
   } = useDisclosure()
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const editSubmitRef = useRef<(() => void) | null>(null)
+  const createSubmitRef = useRef<(() => void) | null>(null)
 
   // 计算选中的商品
   const selectedProducts = useMemo(() => {
@@ -1360,43 +1362,37 @@ export default function ProductsPage() {
           scrollBehavior="inside"
         >
           <ModalContent>
-            {onClose => {
-              const submitFormRef = useRef<(() => void) | null>(null)
-
-              return (
-                <>
-                  <ModalHeader>编辑商品</ModalHeader>
-                  <ModalBody>
-                    <ProductForm
-                      product={editingProduct}
-                      onSubmit={updateProduct}
-                      onCancel={onEditClose}
-                      isLoading={loading}
-                      renderButtons={() => null}
-                      exposeSubmit={submitFn => {
-                        submitFormRef.current = submitFn
-                      }}
-                    />
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button variant="light" onPress={onEditClose}>
-                      取消
-                    </Button>
-                    <Button
-                      color="primary"
-                      onPress={() => {
-                        if (submitFormRef.current) {
-                          submitFormRef.current()
-                        }
-                      }}
-                      isLoading={loading}
-                    >
-                      更新
-                    </Button>
-                  </ModalFooter>
-                </>
-              )
-            }}
+            {() => (
+              <>
+                <ModalHeader>编辑商品</ModalHeader>
+                <ModalBody>
+                  <ProductForm
+                    product={editingProduct}
+                    onSubmit={updateProduct}
+                    onCancel={onEditClose}
+                    isLoading={loading}
+                    renderButtons={() => null}
+                    exposeSubmit={submitFn => {
+                      editSubmitRef.current = submitFn
+                    }}
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="light" onPress={onEditClose}>
+                    取消
+                  </Button>
+                  <Button
+                    color="primary"
+                    onPress={() => {
+                      editSubmitRef.current?.()
+                    }}
+                    isLoading={loading}
+                  >
+                    更新
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
           </ModalContent>
         </Modal>
 
@@ -1408,42 +1404,36 @@ export default function ProductsPage() {
           scrollBehavior="inside"
         >
           <ModalContent>
-            {onClose => {
-              const submitFormRef = useRef<(() => void) | null>(null)
-
-              return (
-                <>
-                  <ModalHeader>新增商品</ModalHeader>
-                  <ModalBody>
-                    <ProductForm
-                      onSubmit={createProduct}
-                      onCancel={onCreateClose}
-                      isLoading={loading}
-                      renderButtons={() => null}
-                      exposeSubmit={submitFn => {
-                        submitFormRef.current = submitFn
-                      }}
-                    />
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button variant="light" onPress={onCreateClose}>
-                      取消
-                    </Button>
-                    <Button
-                      color="primary"
-                      onPress={() => {
-                        if (submitFormRef.current) {
-                          submitFormRef.current()
-                        }
-                      }}
-                      isLoading={loading}
-                    >
-                      创建
-                    </Button>
-                  </ModalFooter>
-                </>
-              )
-            }}
+            {() => (
+              <>
+                <ModalHeader>新增商品</ModalHeader>
+                <ModalBody>
+                  <ProductForm
+                    onSubmit={createProduct}
+                    onCancel={onCreateClose}
+                    isLoading={loading}
+                    renderButtons={() => null}
+                    exposeSubmit={submitFn => {
+                      createSubmitRef.current = submitFn
+                    }}
+                  />
+                </ModalBody>
+                <ModalFooter>
+                  <Button variant="light" onPress={onCreateClose}>
+                    取消
+                  </Button>
+                  <Button
+                    color="primary"
+                    onPress={() => {
+                      createSubmitRef.current?.()
+                    }}
+                    isLoading={loading}
+                  >
+                    创建
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
           </ModalContent>
         </Modal>
       </div>
