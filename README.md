@@ -319,3 +319,34 @@ pnpm format
 ---
 
 © 2024 Smart Match System. All rights reserved.
+
+## Deployment
+
+### Automated pipeline
+
+1. Generate an SSH key pair dedicated to deployments and add the public key to the target server user (`~/.ssh/authorized_keys`).
+2. Create the following GitHub repository secrets:
+   - `DEPLOY_HOST`: server IP or hostname.
+   - `DEPLOY_USER`: SSH user with write access to the deploy directory.
+   - `DEPLOY_PATH`: absolute path serving the static files (e.g. `/var/www/adrenjc/current`).
+   - `DEPLOY_KEY`: private key contents (PEM format) matching the public key you installed.
+   - `DEPLOY_PORT` *(optional)*: custom SSH port, defaults to `22`.
+   - `POST_DEPLOY_CMD` *(optional)*: command executed after upload, e.g. `sudo systemctl reload nginx`.
+3. Ensure `rsync` and `nginx` are installed on the server and the deploy user can reload nginx (configure passwordless sudo if required).
+4. Configure nginx using `deploy/nginx.adrenjc.cn.conf` as a reference and point the `root` directive to `DEPLOY_PATH`.
+5. Push to the `master` branch or trigger the `Deploy` workflow manually; GitHub Actions will build the static site and rsync it to the server.
+
+### Local deploy
+
+The deployment script can also run locally:
+
+```bash
+DEPLOY_HOST=1.2.3.4 \
+DEPLOY_USER=deploy \
+DEPLOY_PATH=/var/www/adrenjc/current \
+DEPLOY_KEY="$(cat ~/.ssh/github-action)" \
+POST_DEPLOY_CMD="sudo systemctl reload nginx" \
+bash scripts/deploy.sh
+```
+
+Set `SKIP_BUILD=1` if you only want to sync a manually built `out/` directory.
