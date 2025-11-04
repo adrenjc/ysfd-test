@@ -9,18 +9,14 @@ interface LoadingSpinnerProps {
   className?: string
 }
 
-export function LoadingSpinner({ 
-  size = "md", 
+export function LoadingSpinner({
+  size = "md",
   label = "加载中...",
-  className 
+  className,
 }: LoadingSpinnerProps) {
   return (
     <div className={cn("flex items-center justify-center py-8", className)}>
-      <Spinner 
-        size={size}
-        label={label}
-        color="primary"
-      />
+      <Spinner size={size} label={label} color="primary" />
     </div>
   )
 }

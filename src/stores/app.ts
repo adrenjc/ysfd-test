@@ -27,7 +27,9 @@ interface AppActions {
   setSidebarCollapsed: (collapsed: boolean) => void
   setSidebarWidth: (width: number) => void
   setLoading: (loading: boolean) => void
-  addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void
+  addNotification: (
+    notification: Omit<Notification, "id" | "timestamp" | "read">
+  ) => void
   removeNotification: (id: string) => void
   markNotificationAsRead: (id: string) => void
   clearNotifications: () => void
@@ -71,7 +73,7 @@ export const useAppStore = create<AppStore>()(
           set({ loading })
         },
 
-        addNotification: (notification) => {
+        addNotification: notification => {
           const id = Math.random().toString(36).substring(2, 15)
           const newNotification: Notification = {
             ...notification,
@@ -116,7 +118,7 @@ export const useAppStore = create<AppStore>()(
       }),
       {
         name: STORAGE_KEYS.THEME,
-        partialize: (state) => ({
+        partialize: state => ({
           theme: state.theme,
           sidebarCollapsed: state.sidebarCollapsed,
           sidebarWidth: state.sidebarWidth,
@@ -136,13 +138,13 @@ export const useNotifications = () => {
   return {
     success: (title: string, message: string, duration?: number) =>
       addNotification({ type: "success", title, message, duration }),
-    
+
     error: (title: string, message: string, duration?: number) =>
       addNotification({ type: "error", title, message, duration }),
-    
+
     warning: (title: string, message: string, duration?: number) =>
       addNotification({ type: "warning", title, message, duration }),
-    
+
     info: (title: string, message: string, duration?: number) =>
       addNotification({ type: "info", title, message, duration }),
   }

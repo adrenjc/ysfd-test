@@ -110,7 +110,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full;
+    @apply rounded-full bg-slate-300;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
@@ -203,35 +203,35 @@
 /* 状态样式 */
 @layer components {
   .status-pending {
-    @apply text-warning bg-warning/10 border-warning/20;
+    @apply border-warning/20 bg-warning/10 text-warning;
   }
 
   .status-processing {
-    @apply text-primary bg-primary/10 border-primary/20;
+    @apply border-primary/20 bg-primary/10 text-primary;
   }
 
   .status-completed {
-    @apply text-success bg-success/10 border-success/20;
+    @apply border-success/20 bg-success/10 text-success;
   }
 
   .status-failed {
-    @apply text-danger bg-danger/10 border-danger/20;
+    @apply border-danger/20 bg-danger/10 text-danger;
   }
 
   .status-pending {
-    @apply text-secondary bg-secondary/10 border-secondary/20;
+    @apply border-secondary/20 bg-secondary/10 text-secondary;
   }
 
   .confidence-high {
-    @apply text-success font-semibold;
+    @apply font-semibold text-success;
   }
 
   .confidence-medium {
-    @apply text-warning font-semibold;
+    @apply font-semibold text-warning;
   }
 
   .confidence-low {
-    @apply text-danger font-semibold;
+    @apply font-semibold text-danger;
   }
 
   .price-increase {

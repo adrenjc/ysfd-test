@@ -63,7 +63,9 @@ export function throttle<T extends (...args: any[]) => any>(
   }) as T
 }
 
-export function getStatusColor(status: string): "success" | "warning" | "danger" | "primary" | "secondary" {
+export function getStatusColor(
+  status: string
+): "success" | "warning" | "danger" | "primary" | "secondary" {
   switch (status.toLowerCase()) {
     case "completed":
     case "success":
@@ -84,7 +86,9 @@ export function getStatusColor(status: string): "success" | "warning" | "danger"
   }
 }
 
-export function getConfidenceColor(confidence: number): "success" | "warning" | "danger" {
+export function getConfidenceColor(
+  confidence: number
+): "success" | "warning" | "danger" {
   if (confidence >= 90) return "success"
   if (confidence >= 70) return "warning"
   return "danger"
