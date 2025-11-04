@@ -10,7 +10,7 @@ const API_CONFIG = {
   BASE_URL:
     process.env.NEXT_PUBLIC_API_URL ||
     (process.env.NODE_ENV === "production"
-      ? "https://www.yssh.cc"
+      ? "https://www.adrenjc.cn"
       : "http://localhost:8080"),
   TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "30000"), // 30秒超时
   HEADERS: {
