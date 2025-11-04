@@ -13,10 +13,18 @@ SSH_OPTIONS="-o StrictHostKeyChecking=no"
 
 # Choose package manager dynamically
 if command -v pnpm >/dev/null 2>&1; then
-  INSTALL_CMD="pnpm install --frozen-lockfile"
+  if [[ -f "pnpm-lock.yaml" ]]; then
+    INSTALL_CMD="pnpm install --frozen-lockfile"
+  else
+    INSTALL_CMD="pnpm install --no-frozen-lockfile"
+  fi
   BUILD_CMD="pnpm run deploy:build"
 else
-  INSTALL_CMD="npm ci"
+  if [[ -f "package-lock.json" ]]; then
+    INSTALL_CMD="npm ci"
+  else
+    INSTALL_CMD="npm install"
+  fi
   BUILD_CMD="npm run deploy:build"
 fi
 
