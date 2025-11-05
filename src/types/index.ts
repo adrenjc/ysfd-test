@@ -2,9 +2,13 @@
 export interface User {
   id: string
   username: string
-  role: "admin" | "operator" | "reviewer"
+  name?: string
+  role: "admin" | "operator" | "reviewer" | "viewer"
   permissions: string[]
   avatar?: string
+  department?: string
+  position?: string
+  email?: string
   createdAt: string
   updatedAt: string
 }
@@ -13,6 +17,24 @@ export interface User {
 export interface LoginCredentials {
   username: string
   password: string
+}
+
+export interface RegisterPayload {
+  username: string
+  password: string
+  name?: string
+  role?: "admin" | "operator" | "reviewer" | "viewer"
+  department?: string
+  position?: string
+}
+
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  token: string
+  newPassword: string
 }
 
 export interface AuthResponse {

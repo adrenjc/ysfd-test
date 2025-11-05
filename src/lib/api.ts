@@ -11,7 +11,7 @@ const API_CONFIG = {
     process.env.NEXT_PUBLIC_API_URL ||
     (process.env.NODE_ENV === "production"
       ? "https://www.adrenjc.cn"
-      : "http://localhost:8080"),
+      : "http://localhost:3002"),
   TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "30000"), // 30秒超时
   HEADERS: {
     "Content-Type": "application/json",

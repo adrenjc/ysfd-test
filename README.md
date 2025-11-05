@@ -2,6 +2,10 @@
 
 基于 Next.js 14 + NextUI + TypeScript 构建的现代化商品匹配管理系统前端应用。
 
+## 📘 文档索引
+
+- [归档资料](docs/README.md)：早期 PRD、架构方案、实施计划、UI 设计稿，仅供历史参考
+
 ## ✨ 技术栈
 
 - **框架**: Next.js 14.x + React 18.x + TypeScript 5.x
@@ -320,33 +324,13 @@ pnpm format
 
 © 2024 Smart Match System. All rights reserved.
 
-## Deployment
+## 🚢 部署
 
-### Automated pipeline
+本仓库提供 `scripts/deploy.sh` 与 `.github/workflows/deploy.yml`，可用于构建后将 `out/` 目录同步到服务器静态目录。使用方式：
 
-1. Generate an SSH key pair dedicated to deployments and add the public key to the target server user (`~/.ssh/authorized_keys`).
-2. Create the following GitHub repository secrets:
-   - `DEPLOY_HOST`: server IP or hostname.
-   - `DEPLOY_USER`: SSH user with write access to the deploy directory.
-   - `DEPLOY_PATH`: absolute path serving the static files (e.g. `/var/www/adrenjc/current`).
-   - `DEPLOY_KEY`: private key contents (PEM format) matching the public key you installed.
-   - `DEPLOY_PORT` *(optional)*: custom SSH port, defaults to `22`.
-   - `POST_DEPLOY_CMD` *(optional)*: command executed after upload, e.g. `sudo systemctl reload nginx`.
-3. Ensure `rsync` and `nginx` are installed on the server and the deploy user can reload nginx (configure passwordless sudo if required).
-4. Configure nginx using `deploy/nginx.adrenjc.cn.conf` as a reference and point the `root` directive to `DEPLOY_PATH`.
-5. Push to the `master` branch or trigger the `Deploy` workflow manually; GitHub Actions will build the static site and rsync it to the server.
+1. 在服务器上准备 SSH 账号并配置 `DEPLOY_HOST`、`DEPLOY_USER`、`DEPLOY_PATH` 等环境变量/仓库密钥  
+2. 根据实际域名调整 `deploy/` 下的 Nginx 示例配置  
+3. 本地推送或通过 GitHub Actions 触发部署时，脚本会自动执行 `pnpm run deploy:build` 并使用 `rsync` 同步  
+4. 若只需同步已构建的 `out/`，设置环境变量 `SKIP_BUILD=1`
 
-### Local deploy
-
-The deployment script can also run locally:
-
-```bash
-DEPLOY_HOST=1.2.3.4 \
-DEPLOY_USER=deploy \
-DEPLOY_PATH=/var/www/adrenjc/current \
-DEPLOY_KEY="$(cat ~/.ssh/github-action)" \
-POST_DEPLOY_CMD="sudo systemctl reload nginx" \
-bash scripts/deploy.sh
-```
-
-Set `SKIP_BUILD=1` if you only want to sync a manually built `out/` directory.
+> 以上流程仅作为示例，具体部署策略请结合自身基础设施进行裁剪。
