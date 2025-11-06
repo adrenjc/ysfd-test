@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
-import { Button, ScrollShadow, Tooltip, Divider, Chip } from "@nextui-org/react"
+import { Button, ScrollShadow, Tooltip, Chip } from "@nextui-org/react"
 import {
   Package,
   RefreshCw,
@@ -73,6 +73,8 @@ const navigationItems: NavItem[] = [
   },
 ]
 
+const SHOW_ACCOUNT_ACTIONS = false
+
 interface SidebarProps {
   className?: string
 }
@@ -80,9 +82,12 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, logout } = useAuthStore()
+  const { logout } = useAuthStore()
   const { sidebarCollapsed, toggleSidebar } = useAppStore()
   const { success: showSuccess } = useNotifications()
+  const visibleNavigationItems = navigationItems.filter(
+    (item) => item.key !== "settings"
+  )
 
   const handleLogout = () => {
     logout()
@@ -178,77 +183,61 @@ export function Sidebar({ className }: SidebarProps) {
       {/* 导航菜单 */}
       <ScrollShadow className="flex-1 py-4">
         <nav className="flex flex-col gap-2 px-3">
-          {navigationItems.map(renderNavItem)}
+          {visibleNavigationItems.map(renderNavItem)}
         </nav>
       </ScrollShadow>
 
-      <Divider />
+      {/* 底部按钮 */}
+      {SHOW_ACCOUNT_ACTIONS && (
+        <div className="p-3">
+          <div className="flex gap-2">
+            <Tooltip
+              content="个人设置"
+              placement="top"
+              isDisabled={!sidebarCollapsed}
+            >
+              <Button
+                isIconOnly={sidebarCollapsed}
+                variant="light"
+                size="sm"
+                className={cn(
+                  "text-default-500",
+                  sidebarCollapsed ? "w-full" : "flex-1"
+                )}
+                startContent={
+                  !sidebarCollapsed ? <User className="h-4 w-4" /> : undefined
+                }
+                aria-label="个人设置"
+              >
+                {sidebarCollapsed ? <User className="h-4 w-4" /> : "设置"}
+              </Button>
+            </Tooltip>
 
-      {/* 底部用户信息 */}
-      <div className="p-3">
-        {!sidebarCollapsed && (
-          <div className="mb-3 rounded-lg bg-default-50 p-3">
-            <div className="mb-2 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-white">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{user?.username}</p>
-                <p className="truncate text-xs text-default-500">
-                  {user?.role}
-                </p>
-              </div>
-            </div>
+            <Tooltip
+              content="退出登录"
+              placement="top"
+              isDisabled={!sidebarCollapsed}
+            >
+              <Button
+                isIconOnly={sidebarCollapsed}
+                variant="light"
+                size="sm"
+                onPress={handleLogout}
+                className={cn(
+                  "text-danger",
+                  sidebarCollapsed ? "w-full" : "flex-1"
+                )}
+                startContent={
+                  !sidebarCollapsed ? <LogOut className="h-4 w-4" /> : undefined
+                }
+                aria-label="退出登录"
+              >
+                {sidebarCollapsed ? <LogOut className="h-4 w-4" /> : "退出"}
+              </Button>
+            </Tooltip>
           </div>
-        )}
-
-        <div className="flex gap-2">
-          <Tooltip
-            content="个人设置"
-            placement="top"
-            isDisabled={!sidebarCollapsed}
-          >
-            <Button
-              isIconOnly={sidebarCollapsed}
-              variant="light"
-              size="sm"
-              className={cn(
-                "text-default-500",
-                sidebarCollapsed ? "w-full" : "flex-1"
-              )}
-              startContent={
-                !sidebarCollapsed ? <User className="h-4 w-4" /> : undefined
-              }
-              aria-label="个人设置"
-            >
-              {sidebarCollapsed ? <User className="h-4 w-4" /> : "设置"}
-            </Button>
-          </Tooltip>
-
-          <Tooltip
-            content="退出登录"
-            placement="top"
-            isDisabled={!sidebarCollapsed}
-          >
-            <Button
-              isIconOnly={sidebarCollapsed}
-              variant="light"
-              size="sm"
-              onPress={handleLogout}
-              className={cn(
-                "text-danger",
-                sidebarCollapsed ? "w-full" : "flex-1"
-              )}
-              startContent={
-                !sidebarCollapsed ? <LogOut className="h-4 w-4" /> : undefined
-              }
-              aria-label="退出登录"
-            >
-              {sidebarCollapsed ? <LogOut className="h-4 w-4" /> : "退出"}
-            </Button>
-          </Tooltip>
         </div>
-      </div>
+      )}
     </aside>
   )
 }

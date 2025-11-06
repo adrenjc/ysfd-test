@@ -1,6 +1,4 @@
 "use client"
-
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Navbar,
@@ -13,19 +11,9 @@ import {
   DropdownItem,
   Badge,
   Avatar,
-  Input,
   Switch,
 } from "@nextui-org/react"
-import {
-  Search,
-  Bell,
-  Settings,
-  User,
-  LogOut,
-  Moon,
-  Sun,
-  Monitor,
-} from "lucide-react"
+import { Bell, Settings, User, LogOut, Moon, Sun, Monitor } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useAuthStore } from "@/stores/auth"
 import { useAppStore, useNotifications } from "@/stores/app"
@@ -43,8 +31,6 @@ export function Header({ title, className }: HeaderProps) {
   const { user, logout } = useAuthStore()
   const { notifications } = useAppStore()
   const { success: showSuccess } = useNotifications()
-
-  const [searchValue, setSearchValue] = useState("")
 
   const unreadNotifications = notifications.filter(n => !n.read)
 
@@ -73,14 +59,6 @@ export function Header({ title, className }: HeaderProps) {
     router.push(ROUTES.LOGIN)
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchValue.trim()) {
-      console.log("搜索:", searchValue)
-      // TODO: 实现搜索逻辑
-    }
-  }
-
   return (
     <Navbar
       maxWidth="full"
@@ -97,30 +75,8 @@ export function Header({ title, className }: HeaderProps) {
         )}
       </NavbarContent>
 
-      {/* 中间搜索框 */}
-      <NavbarContent justify="center" className="hidden sm:flex">
-        <form onSubmit={handleSearch} className="w-full max-w-md">
-          <Input
-            placeholder="搜索商品、任务或用户..."
-            value={searchValue}
-            onValueChange={setSearchValue}
-            startContent={<Search className="h-4 w-4 text-default-400" />}
-            variant="bordered"
-            size="sm"
-            className="w-full"
-          />
-        </form>
-      </NavbarContent>
-
       {/* 右侧操作区 */}
       <NavbarContent justify="end">
-        {/* 搜索按钮 (移动端) */}
-        <NavbarItem className="sm:hidden">
-          <Button isIconOnly variant="light" size="sm" aria-label="搜索">
-            <Search className="h-4 w-4" />
-          </Button>
-        </NavbarItem>
-
         {/* 主题切换 */}
         <NavbarItem>
           <Dropdown placement="bottom-end">
