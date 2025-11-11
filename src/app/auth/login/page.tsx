@@ -301,12 +301,11 @@ export default function LoginPage() {
 
         <section className="relative w-full pt-14 lg:mt-6 lg:w-auto lg:self-start lg:pt-12">
           <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-b from-white/20 to-white/5 blur-3xl" />
-          <Card
-            as={motion.div}
+          <motion.div
             layout
             transition={{ duration: 0.4, ease: [0.2, 0.8, 0.4, 1] }}
-            className="relative overflow-hidden border border-white/10 bg-white/80 shadow-2xl shadow-blue-500/20 backdrop-blur-xl dark:bg-slate-900/70"
           >
+            <Card className="relative overflow-hidden border border-white/10 bg-white/80 shadow-2xl shadow-blue-500/20 backdrop-blur-xl dark:bg-slate-900/70">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500" />
             <CardHeader className="flex flex-col items-center gap-2 pb-3 pt-8 text-center">
               <span className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-blue-500">
@@ -543,6 +542,7 @@ export default function LoginPage() {
               </Tabs>
             </CardBody>
           </Card>
+          </motion.div>
 
           <div className="mt-10 flex flex-col items-center gap-3 text-center text-xs text-slate-500">
             <p>

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useMemo, useState } from "react"
 import useSWR from "swr"
@@ -409,7 +409,7 @@ const handleSubmit = async () => {
               >
                 {item.status === "active" ? "禁用账号" : "启用账号"}
               </DropdownItem>
-              {!item.isProtected && (
+              {!item.isProtected ? (
                 <DropdownItem
                   key="delete"
                   className="text-danger"
@@ -419,7 +419,7 @@ const handleSubmit = async () => {
                 >
                   删除账号
                 </DropdownItem>
-              )}
+              ) : null}
             </DropdownMenu>
           </Dropdown>
         )
@@ -576,7 +576,9 @@ const handleSubmit = async () => {
               {item => (
                 <TableRow key={item.id}>
                   {columnKey => (
-                    <TableCell>{renderUserCell(item, columnKey)}</TableCell>
+                    <TableCell>
+                      {renderUserCell(item, String(columnKey))}
+                    </TableCell>
                   )}
                 </TableRow>
               )}
