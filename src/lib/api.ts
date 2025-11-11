@@ -232,8 +232,18 @@ export const apiDelete = <T = any>(url: string): Promise<T> => {
 }
 
 /**
- * 快速创建带认证的 fetch 请求
- * 用于替换页面中硬编码的 fetch 调用
+ * PATCH请求
+ */
+export const apiPatch = <T = any>(url: string, data?: any): Promise<T> => {
+  return apiRequest<T>(url, {
+    method: "PATCH",
+    body: data ? JSON.stringify(data) : undefined,
+  })
+}
+
+/**
+ * ���ٴ�������֤�� fetch ����
+ * �����滻ҳ����Ӳ����� fetch ����
  */
 export const createAuthenticatedFetch = () => {
   return (url: string, options: RequestInit = {}): Promise<Response> => {
@@ -251,5 +261,5 @@ export const createAuthenticatedFetch = () => {
   }
 }
 
-// 导出一个默认的认证 fetch 实例
+// ����һ��Ĭ�ϵ���֤ fetch ʵ��
 export const authFetch = createAuthenticatedFetch()

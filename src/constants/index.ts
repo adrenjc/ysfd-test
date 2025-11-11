@@ -1,3 +1,41 @@
+import permissionsManifest from "../../../shared/permissions.json"
+
+type PermissionsManifest = {
+  permissions: Record<string, { category: string; description: string }>
+  roles: Record<string, string[]>
+}
+
+const PERMISSION_MANIFEST = permissionsManifest as PermissionsManifest
+const PERMISSION_KEYS = Object.keys(PERMISSION_MANIFEST.permissions)
+const ROLE_KEYS = Object.keys(PERMISSION_MANIFEST.roles)
+
+export const ROLE_PERMISSIONS = Object.freeze(
+  Object.fromEntries(
+    ROLE_KEYS.map(role => [role, Object.freeze([...PERMISSION_MANIFEST.roles[role]])])
+  )
+) as Record<string, readonly string[]>
+
+export const ALL_PERMISSIONS = Object.freeze([...PERMISSION_KEYS])
+
+export const PERMISSIONS_METADATA = Object.freeze(
+  PERMISSION_MANIFEST.permissions
+)
+
+export const PERMISSIONS = Object.freeze(
+  PERMISSION_KEYS.reduce<Record<string, string>>((acc, permission) => {
+    const key = permission.replace(/\./g, '_').toUpperCase()
+    acc[key] = permission
+    return acc
+  }, {})
+)
+
+export const USER_ROLES = Object.freeze(
+  ROLE_KEYS.reduce<Record<string, string>>((acc, role) => {
+    acc[role.toUpperCase()] = role
+    return acc
+  }, {})
+) as Record<string, string>
+
 /* 应用常量 */
 export const APP_NAME = "智能商品匹配系统"
 export const APP_DESCRIPTION = "基于AI的商品匹配与价格管理系统"
@@ -86,39 +124,6 @@ export const STATUS_CONFIG = {
 } as const
 
 /* 用户角色和权限 */
-export const USER_ROLES = {
-  ADMIN: "admin",
-  OPERATOR: "operator",
-  REVIEWER: "reviewer",
-} as const
-
-export const PERMISSIONS = {
-  // 商品权限
-  PRODUCTS_VIEW: "products:view",
-  PRODUCTS_CREATE: "products:create",
-  PRODUCTS_UPDATE: "products:update",
-  PRODUCTS_DELETE: "products:delete",
-
-  // 匹配权限
-  MATCHING_CREATE: "matching:create",
-  MATCHING_VIEW: "matching:view",
-
-  // 审核权限
-  REVIEW_BASIC: "review:basic",
-  REVIEW_EXPERT: "review:expert",
-
-  // 价格权限
-  PRICE_VIEW: "price:view",
-  PRICE_UPDATE: "price:update",
-
-  // 报表权限
-  REPORTS_VIEW: "reports:view",
-
-  // 系统权限
-  SYSTEM_CONFIG: "system:config",
-  USER_MANAGEMENT: "user:management",
-} as const
-
 /* 本地存储键名 */
 export const STORAGE_KEYS = {
   TOKEN: "smart_match_token",
@@ -195,3 +200,4 @@ export const TABLE_CONFIG = {
   MIN_COLUMN_WIDTH: 100,
   MAX_COLUMN_WIDTH: 400,
 } as const
+

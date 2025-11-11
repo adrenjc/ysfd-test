@@ -1,12 +1,12 @@
 "use client"
 
+import { useMemo } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button, ScrollShadow, Tooltip, Chip } from "@nextui-org/react"
 import {
   Package,
   RefreshCw,
-  ClipboardCheck,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -15,61 +15,48 @@ import {
   ListChecks,
   Brain,
 } from "lucide-react"
-import { useAuthStore } from "@/stores/auth"
+import { useAuthStore, usePermissions } from "@/stores/auth"
 import { useAppStore, useNotifications } from "@/stores/app"
 import { ROUTES } from "@/constants"
 import { cn } from "@/lib/utils"
 
 import type { NavItem } from "@/types"
 
-const navigationItems: NavItem[] = [
-  // {
-  //   key: "dashboard",
-  //   label: "仪表板",
-  //   href: ROUTES.DASHBOARD,
-  //   icon: <LayoutDashboard className="h-5 w-5" />,
-  // },
+export const SIDEBAR_ITEMS: NavItem[] = [
   {
     key: "products",
     label: "商品管理",
     href: ROUTES.PRODUCTS,
     icon: <Package className="h-5 w-5" />,
+    requiredPermissions: ["product.read"],
   },
   {
     key: "templates",
     label: "模板管理",
     href: "/dashboard/templates",
     icon: <ListChecks className="h-5 w-5" />,
+    requiredPermissions: ["template.view"],
   },
   {
     key: "matching",
     label: "智能匹配",
     href: ROUTES.MATCHING,
     icon: <RefreshCw className="h-5 w-5" />,
+    requiredPermissions: ["matching.create", "matching.review"],
   },
   {
     key: "memory",
     label: "记忆库",
     href: "/dashboard/memory",
     icon: <Brain className="h-5 w-5" />,
+    requiredPermissions: ["matching.review", "matching.create"],
   },
-  // {
-  //   key: "prices",
-  //   label: "价格管理",
-  //   href: ROUTES.PRICES,
-  //   icon: <TrendingUp className="h-5 w-5" />,
-  // },
-  // {
-  //   key: "reports",
-  //   label: "数据报表",
-  //   href: ROUTES.REPORTS,
-  //   icon: <BarChart3 className="h-5 w-5" />,
-  // },
   {
     key: "settings",
-    label: "系统设置",
+    label: "用户管理",
     href: ROUTES.SETTINGS,
     icon: <Settings className="h-5 w-5" />,
+    requiredPermissions: ["system.config"],
   },
 ]
 
@@ -82,23 +69,39 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const { logout } = useAuthStore()
+  const { logout, user } = useAuthStore(state => ({
+    logout: state.logout,
+    user: state.user,
+  }))
   const { sidebarCollapsed, toggleSidebar } = useAppStore()
   const { success: showSuccess } = useNotifications()
-  const visibleNavigationItems = navigationItems.filter(
-    (item) => item.key !== "settings"
-  )
+  const { hasAnyPermission, role, permissions } = usePermissions()
+
+  const filteredNavigationItems = useMemo(() => {
+    if (!user || permissions.length === 0) {
+      return SIDEBAR_ITEMS
+    }
+
+    return SIDEBAR_ITEMS.filter(item => {
+      const roleAllowed =
+        !item.requiredRoles ||
+        (role ? item.requiredRoles.includes(role) : false)
+
+      const permissionAllowed =
+        !item.requiredPermissions ||
+        hasAnyPermission(item.requiredPermissions)
+
+      return roleAllowed && permissionAllowed
+    })
+  }, [hasAnyPermission, permissions.length, role, user])
 
   const handleLogout = () => {
     logout()
     showSuccess("退出成功", "您已安全退出系统")
-    // 跳转到登录页面
     router.push(ROUTES.LOGIN)
   }
 
-  const isActive = (href: string) => {
-    return pathname.startsWith(href)
-  }
+  const isActive = (href: string) => pathname.startsWith(href)
 
   const renderNavItem = (item: NavItem) => {
     const active = isActive(item.href!)
@@ -183,7 +186,7 @@ export function Sidebar({ className }: SidebarProps) {
       {/* 导航菜单 */}
       <ScrollShadow className="flex-1 py-4">
         <nav className="flex flex-col gap-2 px-3">
-          {visibleNavigationItems.map(renderNavItem)}
+          {filteredNavigationItems.map(renderNavItem)}
         </nav>
       </ScrollShadow>
 
@@ -191,11 +194,7 @@ export function Sidebar({ className }: SidebarProps) {
       {SHOW_ACCOUNT_ACTIONS && (
         <div className="p-3">
           <div className="flex gap-2">
-            <Tooltip
-              content="个人设置"
-              placement="top"
-              isDisabled={!sidebarCollapsed}
-            >
+            <Tooltip content="个人设置" placement="top" isDisabled={!sidebarCollapsed}>
               <Button
                 isIconOnly={sidebarCollapsed}
                 variant="light"
@@ -204,20 +203,14 @@ export function Sidebar({ className }: SidebarProps) {
                   "text-default-500",
                   sidebarCollapsed ? "w-full" : "flex-1"
                 )}
-                startContent={
-                  !sidebarCollapsed ? <User className="h-4 w-4" /> : undefined
-                }
+                startContent={!sidebarCollapsed ? <User className="h-4 w-4" /> : undefined}
                 aria-label="个人设置"
               >
                 {sidebarCollapsed ? <User className="h-4 w-4" /> : "设置"}
               </Button>
             </Tooltip>
 
-            <Tooltip
-              content="退出登录"
-              placement="top"
-              isDisabled={!sidebarCollapsed}
-            >
+            <Tooltip content="退出登录" placement="top" isDisabled={!sidebarCollapsed}>
               <Button
                 isIconOnly={sidebarCollapsed}
                 variant="light"
@@ -227,9 +220,7 @@ export function Sidebar({ className }: SidebarProps) {
                   "text-danger",
                   sidebarCollapsed ? "w-full" : "flex-1"
                 )}
-                startContent={
-                  !sidebarCollapsed ? <LogOut className="h-4 w-4" /> : undefined
-                }
+                startContent={!sidebarCollapsed ? <LogOut className="h-4 w-4" /> : undefined}
                 aria-label="退出登录"
               >
                 {sidebarCollapsed ? <LogOut className="h-4 w-4" /> : "退出"}

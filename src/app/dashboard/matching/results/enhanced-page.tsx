@@ -180,18 +180,18 @@ interface TaskInfo {
 // 状态芯片组件
 const StatusChip = ({ status }: { status: string }) => {
   const config = {
-    confirmed: { color: "success" as const, label: "已确认", icon: "✅" },
-    rejected: { color: "danger" as const, label: "已拒绝", icon: "❌" },
-    exception: { color: "warning" as const, label: "异常", icon: "⚠️" },
-    pending: { color: "secondary" as const, label: "待审核", icon: "🔍" },
+    confirmed: { color: "success" as const, label: "已确认" },
+    rejected: { color: "danger" as const, label: "已拒绝" },
+    exception: { color: "warning" as const, label: "异常" },
+    pending: { color: "secondary" as const, label: "待审核" },
   }
 
-  const { color, label, icon } =
+  const { color, label } =
     config[status as keyof typeof config] || config.exception
 
   return (
     <Chip variant="flat" color={color} size="sm">
-      {icon} {label}
+      {label}
     </Chip>
   )
 }
@@ -199,57 +199,44 @@ const StatusChip = ({ status }: { status: string }) => {
 // 匹配类型芯片组件
 const MatchTypeChip = ({
   matchType,
-  isMemoryMatch,
   status,
 }: {
   matchType: string
-  isMemoryMatch?: boolean
   status?: string
 }) => {
   const config = {
-    auto: { color: "primary" as const, label: "自动匹配", icon: "🤖" },
-    manual: { color: "secondary" as const, label: "人工确认", icon: "👤" },
-    expert: { color: "warning" as const, label: "专家审核", icon: "🎯" },
-    memory: { color: "success" as const, label: "记忆匹配", icon: "🧠" },
-    rejected: { color: "danger" as const, label: "已拒绝", icon: "❌" },
+    auto: { color: "primary" as const, label: "自动匹配" },
+    manual: { color: "secondary" as const, label: "人工确认" },
+    expert: { color: "warning" as const, label: "专家介入" },
+    memory: { color: "success" as const, label: "记忆匹配" },
+    rejected: { color: "danger" as const, label: "已拒绝" },
   }
 
-  // 根据状态优先显示特殊状态
   if (status === "rejected") {
-    // 已拒绝状态不显示匹配类型，避免重复显示
     return <span className="text-default-400">-</span>
   }
 
-  // 如果是异常状态且没有匹配，显示异常状态
   if (status === "exception" && !matchType) {
     return (
       <div className="flex gap-1">
         <Chip variant="flat" color="warning" size="sm">
-          ⚠️ 匹配异常
+          匹配异常
         </Chip>
       </div>
     )
   }
 
-  const { color, label, icon } =
+  const { color, label } =
     config[matchType as keyof typeof config] || config.auto
 
   return (
     <div className="flex gap-1">
       <Chip variant="flat" color={color} size="sm">
-        {icon} {label}
+        {label}
       </Chip>
-      {isMemoryMatch && (
-        <Tooltip content="基于历史记忆匹配">
-          <Chip variant="flat" color="success" size="sm">
-            <Brain className="h-3 w-3" />
-          </Chip>
-        </Tooltip>
-      )}
     </div>
   )
 }
-
 // 置信度显示组件
 const ConfidenceDisplay = ({
   confidence,
@@ -376,7 +363,7 @@ const CombinedCodesDisplay = ({
       {/* 条码 */}
       {productCode && (
         <div
-          className="flex cursor-pointer items-center gap-1 rounded bg-blue-50 px-2 py-1 transition-all hover:bg-blue-100 hover:shadow-sm"
+          className="flex cursor-pointer items-center gap-0 rounded bg-blue-50 px-2 py-1 transition-all hover:bg-blue-100 hover:shadow-sm"
           onClick={() => copyToClipboard(productCode, "条码")}
           title="点击复制条码"
         >
@@ -388,7 +375,7 @@ const CombinedCodesDisplay = ({
       {/* 盒码 */}
       {boxCode && (
         <div
-          className="flex cursor-pointer items-center gap-1 rounded bg-emerald-50 px-2 py-1 transition-all hover:bg-emerald-100 hover:shadow-sm"
+          className="flex cursor-pointer items-center gap-0 rounded bg-emerald-50 px-2 py-1 transition-all hover:bg-emerald-100 hover:shadow-sm"
           onClick={() => copyToClipboard(boxCode, "盒码")}
           title="点击复制盒码"
         >
@@ -3620,7 +3607,6 @@ function EnhancedMatchingResultsContent() {
                           {result.selectedMatch ? (
                             <MatchTypeChip
                               matchType={result.selectedMatch.matchType}
-                              isMemoryMatch={result.selectedMatch.isMemoryMatch}
                               status={result.status}
                             />
                           ) : result.status === "pending" &&
@@ -3628,14 +3614,12 @@ function EnhancedMatchingResultsContent() {
                             result.candidates.length > 0 ? (
                             <MatchTypeChip
                               matchType={result.candidates[0].matchType}
-                              isMemoryMatch={false}
                               status={result.status}
                             />
                           ) : result.status === "rejected" ||
                             result.status === "exception" ? (
                             <MatchTypeChip
                               matchType=""
-                              isMemoryMatch={false}
                               status={result.status}
                             />
                           ) : (

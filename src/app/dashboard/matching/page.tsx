@@ -42,7 +42,9 @@ import {
 } from "lucide-react"
 import { FileUpload } from "@/components/ui/file-upload"
 import { EmptyState } from "@/components/ui/empty-state"
+import { PERMISSIONS } from "@/constants"
 import { useNotifications } from "@/stores/app"
+import { usePermissions } from "@/stores/auth"
 import { buildApiUrl, API_ROUTES, getAuthOnlyHeaders } from "@/lib/api"
 import { getAuthHeaders } from "@/lib/auth"
 import dynamic from "next/dynamic"
@@ -144,6 +146,7 @@ function MatchingPage() {
   const [loading, setLoading] = useState(true)
   const [uploadLoading, setUploadLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
+  const [permissionError, setPermissionError] = useState<string | null>(null)
 
   // 模板相关状态
   const [templates, setTemplates] = useState<ProductTemplate[]>([])
@@ -169,6 +172,9 @@ function MatchingPage() {
 
   // 打开上传弹窗时自动选择默认模板
   const handleUploadOpen = () => {
+    if (!canCreateMatching) {
+      return
+    }
     // 如果没有选择模板，自动选择默认模板
     if (!selectedTemplateId && templates.length > 0) {
       const defaultTemplate = templates.find(t => t.isDefault)
@@ -182,6 +188,19 @@ function MatchingPage() {
 
   // 通知系统
   const notifications = useNotifications()
+  const { hasPermission } = usePermissions()
+  const canCreateMatching = hasPermission(PERMISSIONS.MATCHING_CREATE)
+  const canReviewMatching =
+    hasPermission(PERMISSIONS.MATCHING_REVIEW) ||
+    hasPermission(PERMISSIONS.MATCHING_CONFIRM)
+  const canViewMatching = canCreateMatching || canReviewMatching
+  const defaultNoAccessMessage =
+    "当前角色暂无匹配任务权限，请联系系统管理员开通。"
+
+  const markNoAccess = (message = defaultNoAccessMessage) => {
+    setPermissionError(message)
+    setTasks([])
+  }
 
   // 上传配置
   const [uploadConfig, setUploadConfig] = useState({
@@ -193,11 +212,22 @@ function MatchingPage() {
 
   // 获取模板列表
   const fetchTemplates = async () => {
+    if (!canViewMatching) {
+      setTemplates([])
+      setTemplatesLoading(false)
+      return
+    }
+
     try {
       setTemplatesLoading(true)
       const response = await fetch(buildApiUrl(API_ROUTES.TEMPLATES.OPTIONS), {
         headers: getAuthHeaders(),
       })
+
+      if (response.status === 403) {
+        markNoAccess()
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -224,11 +254,23 @@ function MatchingPage() {
 
   // 获取匹配任务列表
   const fetchTasks = async () => {
+    if (!canViewMatching) {
+      markNoAccess()
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
+      setPermissionError(null)
       const response = await fetch(buildApiUrl("/matching/tasks?limit=1000"), {
         headers: getAuthHeaders(),
       })
+
+      if (response.status === 403) {
+        markNoAccess("当前账号没有匹配任务权限，无法获取任务列表。")
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -246,6 +288,10 @@ function MatchingPage() {
 
   // 创建匹配任务
   const createMatchingTask = async (file: File) => {
+    if (!canCreateMatching) {
+      notifications.error("权限不足", "当前账号没有创建匹配任务的权限")
+      return
+    }
     if (!selectedTemplateId) {
       notifications.error("请选择模板", "必须选择一个商品模板才能创建匹配任务")
       return
@@ -299,6 +345,10 @@ function MatchingPage() {
 
   // 执行匹配任务
   const executeTask = async (taskId: string) => {
+    if (!canCreateMatching) {
+      notifications.error("权限不足", "当前账号没有执行匹配任务的权限")
+      return
+    }
     try {
       const response = await fetch(
         buildApiUrl(`/matching/tasks/${taskId}/execute`),
@@ -307,6 +357,11 @@ function MatchingPage() {
           headers: getAuthHeaders(),
         }
       )
+
+      if (response.status === 403) {
+        markNoAccess("当前账号没有执行匹配任务的权限。")
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -384,6 +439,10 @@ function MatchingPage() {
   // 确认删除任务
   const confirmDeleteTask = async () => {
     if (!taskToDelete) return
+    if (!canCreateMatching) {
+      notifications.error("权限不足", "当前账号没有删除匹配任务的权限")
+      return
+    }
 
     try {
       const response = await fetch(
@@ -393,6 +452,11 @@ function MatchingPage() {
           headers: getAuthHeaders(),
         }
       )
+
+      if (response.status === 403) {
+        markNoAccess("当前账号没有删除匹配任务的权限。")
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -411,6 +475,12 @@ function MatchingPage() {
 
   // 检查并更新任务状态
   const checkAndUpdateStatus = async (taskId: string, silent = false) => {
+    if (!canCreateMatching) {
+      if (!silent) {
+        notifications.error("权限不足", "当前账号没有更新任务状态的权限")
+      }
+      return
+    }
     try {
       if (!silent) {
         notifications.info("正在检查", "正在检查任务状态...")
@@ -423,6 +493,11 @@ function MatchingPage() {
           headers: getAuthHeaders(),
         }
       )
+
+      if (response.status === 403) {
+        markNoAccess("当前账号没有更新任务状态的权限。")
+        return
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -453,6 +528,8 @@ function MatchingPage() {
 
   // 渲染操作按钮
   const renderActions = (task: MatchingTask) => {
+    const manageDisabled = !canCreateMatching || !!permissionError
+    const reviewDisabled = !canViewMatching || !!permissionError
     return (
       <div className="flex items-center gap-2">
         {task.status === "pending" && (
@@ -462,6 +539,7 @@ function MatchingPage() {
             variant="light"
             color="primary"
             onClick={() => executeTask(task._id)}
+            isDisabled={manageDisabled}
             title="开始执行"
           >
             <Play className="h-4 w-4" />
@@ -477,6 +555,7 @@ function MatchingPage() {
               variant="light"
               color="primary"
               onClick={() => checkAndUpdateStatus(task._id)}
+              isDisabled={manageDisabled}
               title="手动检查状态（通常会自动转换）"
             >
               <RefreshCw className="h-4 w-4" />
@@ -491,6 +570,7 @@ function MatchingPage() {
             variant="flat"
             as="a"
             href={`/dashboard/matching/results?taskId=${task._id}&taskName=${encodeURIComponent(task.originalFilename)}&taskIdentifier=${encodeURIComponent(generateTaskIdentifier(task))}`}
+            isDisabled={reviewDisabled}
           >
             {task.status === "review" ? "管理匹配" : "查看结果"}
           </Button>
@@ -502,6 +582,7 @@ function MatchingPage() {
           variant="light"
           color="danger"
           onClick={() => handleDeleteTask(task)}
+          isDisabled={manageDisabled}
           title="删除任务"
         >
           <XCircle className="h-4 w-4" />
@@ -565,12 +646,23 @@ function MatchingPage() {
   const taskCounts = getTaskCounts()
 
   useEffect(() => {
+    if (!canViewMatching) {
+      markNoAccess()
+      setLoading(false)
+      setTemplates([])
+      return
+    }
+
+    setPermissionError(null)
     fetchTemplates()
     fetchTasks()
-  }, [])
+  }, [canViewMatching])
 
   // 设置智能刷新（处理中的任务）
   useEffect(() => {
+    if (!canViewMatching || permissionError) {
+      return
+    }
     const interval = setInterval(async () => {
       const processingTasks = tasks.filter(task => task.status === "processing")
       if (processingTasks.length > 0) {
@@ -629,7 +721,7 @@ function MatchingPage() {
     }, 2000) // 改为2秒刷新一次，提高进度更新的实时性
 
     return () => clearInterval(interval)
-  }, [tasks])
+  }, [tasks, canViewMatching, permissionError])
 
   return (
     <div className="space-y-6" suppressHydrationWarning>
@@ -644,6 +736,7 @@ function MatchingPage() {
             variant="flat"
             startContent={<RefreshCw className="h-4 w-4" />}
             onClick={fetchTasks}
+            isDisabled={!canViewMatching}
           >
             刷新
           </Button>
@@ -651,6 +744,8 @@ function MatchingPage() {
             color="primary"
             startContent={<Upload className="h-4 w-4" />}
             onClick={handleUploadOpen}
+            isDisabled={!canCreateMatching || !!permissionError}
+            title={!canCreateMatching ? "当前角色没有创建匹配任务的权限" : permissionError || undefined}
           >
             新建匹配任务
           </Button>
@@ -665,7 +760,26 @@ function MatchingPage() {
             <p className="text-sm text-default-500">管理您的商品匹配任务</p>
           </div>
         </CardHeader>
-        <CardBody>
+        {permissionError ? (
+          <CardBody>
+            <div className="py-16">
+              <EmptyState
+                icon={<AlertTriangle className="h-12 w-12 text-warning" />}
+                title="暂无访问权限"
+                description={permissionError}
+                action={
+                  canViewMatching
+                    ? {
+                        label: "重新检测权限",
+                        onClick: fetchTasks,
+                      }
+                    : undefined
+                }
+              />
+            </div>
+          </CardBody>
+        ) : (
+          <CardBody>
           {/* 任务状态Tab */}
           <Tabs
             selectedKey={activeTab}
@@ -772,7 +886,7 @@ function MatchingPage() {
                   : "切换到其他标签页查看更多任务"
               }
               action={
-                activeTab === "all"
+                activeTab === "all" && canCreateMatching
                   ? {
                       label: "新建任务",
                       onClick: handleUploadOpen,
@@ -841,7 +955,10 @@ function MatchingPage() {
               </TableBody>
             </Table>
           )}
+
         </CardBody>
+        )}
+
       </Card>
 
       {/* 上传任务模态框 */}

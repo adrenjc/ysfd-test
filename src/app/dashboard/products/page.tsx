@@ -87,6 +87,7 @@ const EmptyState = dynamic(
   }
 )
 import { useNotifications } from "@/stores/app"
+import { usePermissions } from "@/stores/auth"
 import { getAuthHeaders } from "@/lib/auth"
 import {
   API_ROUTES,
@@ -203,6 +204,10 @@ export default function ProductsPage() {
 
   // 通知系统
   const notifications = useNotifications()
+  const { hasPermission } = usePermissions()
+  const canCreateProduct = hasPermission("product.write")
+  const canEditProduct = hasPermission("product.write")
+  const canDeleteProduct = hasPermission("product.delete")
 
   // useEffect hooks - 必须在组件顶部
   useEffect(() => {
@@ -458,6 +463,10 @@ export default function ProductsPage() {
 
   // 批量删除商品
   const batchDeleteProducts = async (ids: string[]) => {
+    if (!canDeleteProduct) {
+      notifications.error("权限不足", "当前角色无法删除商品")
+      return
+    }
     try {
       setBatchLoading(true)
 
@@ -489,6 +498,10 @@ export default function ProductsPage() {
 
   // 批量操作商品（启用/禁用）
   const batchOperation = async (action: "activate" | "deactivate") => {
+    if (!canEditProduct) {
+      notifications.error("权限不足", "当前角色无法批量编辑商品")
+      return
+    }
     try {
       setBatchLoading(true)
       const ids = Array.from(selectedKeys)
@@ -785,7 +798,8 @@ export default function ProductsPage() {
           size="sm"
           variant="light"
           color="primary"
-          onPress={() => handleEdit(product)}
+          isDisabled={!canEditProduct}
+          onPress={() => canEditProduct && handleEdit(product)}
           className="h-8 w-8 min-w-8"
         >
           <Edit2 className="h-4 w-4" />
@@ -795,7 +809,8 @@ export default function ProductsPage() {
           size="sm"
           variant="light"
           color="danger"
-          onPress={() => handleDelete(product._id)}
+          isDisabled={!canDeleteProduct}
+          onPress={() => canDeleteProduct && handleDelete(product._id)}
           className="h-8 w-8 min-w-8"
         >
           <Trash2 className="h-4 w-4" />

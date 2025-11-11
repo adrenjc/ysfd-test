@@ -7,7 +7,7 @@ import type {
   RegisterPayload,
   ForgotPasswordPayload,
 } from "@/types"
-import { STORAGE_KEYS } from "@/constants"
+import { ROLE_PERMISSIONS, STORAGE_KEYS } from "@/constants"
 import { buildApiUrl } from "@/lib/api"
 
 interface AuthState {
@@ -17,10 +17,11 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  isInitialized: boolean
 }
 
 interface AuthActions {
-  initializeAuth: () => void
+  initializeAuth: () => Promise<void>
   login: (credentials: LoginCredentials) => Promise<boolean>
   register: (payload: RegisterPayload) => Promise<boolean>
   logout: () => void
@@ -42,6 +43,23 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  isInitialized: false,
+}
+
+const resolveUserPermissions = (user: User | null, fallback?: User | null) => {
+  if (!user) return user
+
+  if (user.permissions && user.permissions.length > 0) {
+    return user
+  }
+
+  if (fallback?.permissions && fallback.permissions.length > 0) {
+    return { ...user, permissions: fallback.permissions }
+  }
+
+  const rolePerms =
+    ROLE_PERMISSIONS?.[user.role as keyof typeof ROLE_PERMISSIONS]
+  return { ...user, permissions: rolePerms ? [...rolePerms] : [] }
 }
 
 const persistConfig = {
@@ -60,7 +78,7 @@ export const useAuthStore = create<AuthStore>()(
       (set, get) => ({
         ...initialState,
 
-        initializeAuth: () => {
+        initializeAuth: async () => {
           if (typeof window === "undefined") return
 
           const storedToken = localStorage.getItem(STORAGE_KEYS.TOKEN)
@@ -69,34 +87,94 @@ export const useAuthStore = create<AuthStore>()(
           )
           const storedUser = localStorage.getItem(STORAGE_KEYS.USER)
 
-          if (!storedToken || !storedRefreshToken || !storedUser) return
+          if (!storedToken || !storedRefreshToken) {
+            get().logout()
+            return
+          }
 
           try {
-            const user = JSON.parse(storedUser)
-
-            try {
-              const tokenPayload = JSON.parse(atob(storedToken.split(".")[1]))
-              const isExpired = tokenPayload.exp * 1000 < Date.now()
-
-              if (isExpired) {
-                get().logout()
-                return
-              }
-
-              set({
-                user,
-                token: storedToken,
-                refreshToken: storedRefreshToken,
-                isAuthenticated: true,
-              })
-            } catch (tokenError) {
-              console.error("JWT token parsing failed:", tokenError)
+            const payload = JSON.parse(atob(storedToken.split(".")[1]))
+            const isExpired = payload.exp * 1000 < Date.now()
+            if (isExpired) {
               get().logout()
+              return
             }
           } catch (error) {
-            console.error("Auth initialization failed:", error)
+            console.error("JWT token parsing failed:", error)
             get().logout()
+            return
           }
+
+          let resolvedUser: User | null = null
+          let storedUserParsed: User | null = null
+
+          if (storedUser) {
+            try {
+              storedUserParsed = JSON.parse(storedUser)
+              resolvedUser = storedUserParsed
+            } catch (parseError) {
+              console.warn(
+                "Stored user payload corrupted, discarding",
+                parseError
+              )
+              storedUserParsed = null
+              resolvedUser = null
+            }
+          }
+
+          try {
+            const response = await fetch(buildApiUrl("/auth/me"), {
+              headers: {
+                Authorization: `Bearer ${storedToken}`,
+              },
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              const remoteUser = data?.data?.user as User | undefined
+              if (remoteUser) {
+                const normalizedRemote = resolveUserPermissions(
+                  remoteUser,
+                  storedUserParsed
+                )
+                resolvedUser = normalizedRemote
+                localStorage.setItem(
+                  STORAGE_KEYS.USER,
+                  JSON.stringify(normalizedRemote)
+                )
+              }
+            } else if (response.status === 401) {
+              get().logout()
+              return
+            }
+          } catch (error) {
+            console.warn("Failed to refresh user profile on init:", error)
+          }
+
+          if (!resolvedUser) {
+            get().logout()
+            return
+          }
+
+          const normalizedUser = resolveUserPermissions(
+            resolvedUser,
+            storedUserParsed
+          )
+
+          if (typeof window !== "undefined" && normalizedUser) {
+            localStorage.setItem(
+              STORAGE_KEYS.USER,
+              JSON.stringify(normalizedUser)
+            )
+          }
+
+          set({
+            user: normalizedUser,
+            token: storedToken,
+            refreshToken: storedRefreshToken,
+            isAuthenticated: true,
+            isInitialized: true,
+          })
         },
 
         login: async (credentials: LoginCredentials) => {
@@ -114,20 +192,25 @@ export const useAuthStore = create<AuthStore>()(
             if (response.ok && data.success && data.data) {
               const { user, tokens } = data.data
               const { accessToken, refreshToken } = tokens
+              const normalizedUser = resolveUserPermissions(user)
 
               set({
-                user,
+                user: normalizedUser,
                 token: accessToken,
                 refreshToken,
                 isAuthenticated: true,
                 isLoading: false,
                 error: null,
+                isInitialized: true,
               })
 
               if (typeof window !== "undefined") {
                 localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
                 localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
-                localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
+                localStorage.setItem(
+                  STORAGE_KEYS.USER,
+                  JSON.stringify(normalizedUser)
+                )
               }
 
               return true
@@ -135,16 +218,18 @@ export const useAuthStore = create<AuthStore>()(
 
             set({
               isLoading: false,
-              error: data.message || "登录失败，请检查用户名和密码",
+              error: data.message || "登录失败，请检查用户名或密码",
             })
             return false
           } catch (error) {
             console.error("Login error:", error)
             set({
               isLoading: false,
-              error: "登录失败，请稍后重试",
+              error: "登录失败，请稍后再试",
             })
             return false
+          } finally {
+            set({ isInitialized: true })
           }
         },
 
@@ -163,9 +248,10 @@ export const useAuthStore = create<AuthStore>()(
             if (response.ok && data.success && data.data) {
               const { user, tokens } = data.data
               const { accessToken, refreshToken } = tokens
+              const normalizedUser = resolveUserPermissions(user)
 
               set({
-                user,
+                user: normalizedUser,
                 token: accessToken,
                 refreshToken,
                 isAuthenticated: true,
@@ -176,7 +262,10 @@ export const useAuthStore = create<AuthStore>()(
               if (typeof window !== "undefined") {
                 localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
                 localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
-                localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
+                localStorage.setItem(
+                  STORAGE_KEYS.USER,
+                  JSON.stringify(normalizedUser)
+                )
               }
 
               return true
@@ -184,21 +273,23 @@ export const useAuthStore = create<AuthStore>()(
 
             set({
               isLoading: false,
-              error: data.message || "注册失败，请稍后重试",
+              error: data.message || "注册失败，请稍后再试",
             })
             return false
           } catch (error) {
             console.error("Register error:", error)
             set({
               isLoading: false,
-              error: "注册失败，请稍后重试",
+              error: "注册失败，请稍后再试",
             })
             return false
+          } finally {
+            set({ isInitialized: true })
           }
         },
 
         logout: () => {
-          set({ ...initialState })
+          set({ ...initialState, isInitialized: true })
 
           if (typeof window !== "undefined") {
             localStorage.removeItem(STORAGE_KEYS.TOKEN)
@@ -318,34 +409,38 @@ export const useAuthStore = create<AuthStore>()(
 export const usePermissions = () => {
   const user = useAuthStore(state => state.user)
 
+  const permissions = user?.permissions ?? []
+  const role = user?.role
+
   const hasPermission = (permission: string): boolean => {
-    if (!user || !user.permissions) return false
-    return user.permissions.includes(permission)
+    if (!permission) return false
+    return permissions.includes(permission)
   }
 
-  const hasAnyPermission = (permissions: string[]): boolean => {
-    if (!user || !user.permissions) return false
-    return permissions.some(permission => user.permissions.includes(permission))
+  const hasAnyPermission = (required: string[]): boolean => {
+    if (!required || required.length === 0) return true
+    return required.some(permission => hasPermission(permission))
   }
 
-  const hasAllPermissions = (permissions: string[]): boolean => {
-    if (!user || !user.permissions) return false
-    return permissions.every(permission =>
-      user.permissions.includes(permission)
-    )
+  const hasAllPermissions = (required: string[]): boolean => {
+    if (!required || required.length === 0) return true
+    return required.every(permission => hasPermission(permission))
   }
 
-  const isAdmin = () => user?.role === "admin"
-  const isOperator = () => user?.role === "operator"
-  const isReviewer = () => user?.role === "reviewer"
+  const isAdmin = () => role === "admin"
+  const isOperator = () => role === "operator"
+  const isReviewer = () => role === "reviewer"
+  const isViewer = () => role === "viewer"
 
   return {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
+    permissions,
+    role,
     isAdmin,
     isOperator,
     isReviewer,
+    isViewer,
   }
 }
-

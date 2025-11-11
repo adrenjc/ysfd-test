@@ -47,6 +47,7 @@ import {
 } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useNotifications } from "@/stores/app"
+import { usePermissions } from "@/stores/auth"
 import { buildApiUrl, apiGet, apiPost, apiPut, apiDelete } from "@/lib/api"
 import { getAuthHeaders } from "@/lib/auth"
 
@@ -186,6 +187,12 @@ export default function TemplatesPage() {
 
   // 通知系统
   const notifications = useNotifications()
+  const { hasPermission } = usePermissions()
+  const canCreateTemplate = hasPermission("template.create")
+  const canUpdateTemplate = hasPermission("template.update")
+  const canDeleteTemplate = hasPermission("template.delete")
+  const canManageTemplate =
+    hasPermission("template.manage") || hasPermission("template.update")
 
   // 获取模板列表
   const fetchTemplates = async () => {
@@ -218,6 +225,10 @@ export default function TemplatesPage() {
 
   // 创建模板
   const handleCreate = async () => {
+    if (!canCreateTemplate) {
+      notifications.error("权限不足", "当前角色无法新增模板")
+      return
+    }
     if (!formData.name.trim()) {
       notifications.error("请填写模板名称", "模板名称不能为空")
       return
@@ -246,6 +257,10 @@ export default function TemplatesPage() {
 
   // 更新模板
   const handleUpdate = async () => {
+    if (!canUpdateTemplate) {
+      notifications.error("权限不足", "当前角色无法编辑模板")
+      return
+    }
     if (!editingTemplate || !formData.name.trim()) {
       return
     }
@@ -274,6 +289,10 @@ export default function TemplatesPage() {
 
   // 删除模板
   const handleDelete = async () => {
+    if (!canDeleteTemplate) {
+      notifications.error("权限不足", "当前角色无法删除模板")
+      return
+    }
     if (!deletingTemplate) return
 
     setSubmitLoading(true)
@@ -299,6 +318,10 @@ export default function TemplatesPage() {
 
   // 复制模板
   const handleCopy = async () => {
+    if (!canCreateTemplate) {
+      notifications.error("权限不足", "当前角色无法复制模板")
+      return
+    }
     if (!copyingTemplate || !copyName.trim()) {
       notifications.error("请填写新模板名称", "新模板名称不能为空")
       return
@@ -314,20 +337,19 @@ export default function TemplatesPage() {
       await fetchTemplates()
     } catch (error) {
       console.error("❌ 复制模板失败:", error)
-      // 如果是认证错误，会自动处理跳转，这里不需要显示错误
       if (!(error as any)?.isAuthError) {
-        notifications.error(
-          "复制失败",
-          (error as Error).message || "无法复制模板"
-        )
+        notifications.error("复制失败", (error as Error).message || "无法复制模板")
       }
     } finally {
       setSubmitLoading(false)
     }
   }
 
-  // 设置默认模板
-  const handleSetDefault = async (template: ProductTemplate) => {
+const handleSetDefault = async (template: ProductTemplate) => {
+    if (!canManageTemplate) {
+      notifications.error("权限不足", "当前角色无法设置默认模板")
+      return
+    }
     try {
       // 使用 apiRequest 但是 PATCH 方法，所以用 fetch 但显式处理认证错误
       const response = await fetch(
@@ -377,6 +399,10 @@ export default function TemplatesPage() {
 
   // 编辑模板
   const startEdit = (template: ProductTemplate) => {
+    if (!canUpdateTemplate) {
+      notifications.error("权限不足", "当前角色无法编辑模板")
+      return
+    }
     setEditingTemplate(template)
     setFormData({
       name: template.name,
@@ -389,6 +415,10 @@ export default function TemplatesPage() {
 
   // 开始复制
   const startCopy = (template: ProductTemplate) => {
+    if (!canCreateTemplate) {
+      notifications.error("权限不足", "当前角色无法复制模板")
+      return
+    }
     setCopyingTemplate(template)
     setCopyName(`${template.name}_副本`)
     onCopyOpen()
@@ -396,6 +426,10 @@ export default function TemplatesPage() {
 
   // 开始删除
   const startDelete = (template: ProductTemplate) => {
+    if (!canDeleteTemplate) {
+      notifications.error("权限不足", "当前角色无法删除模板")
+      return
+    }
     setDeletingTemplate(template)
     onDeleteOpen()
   }
@@ -445,7 +479,8 @@ export default function TemplatesPage() {
         <Button
           color="primary"
           startContent={<Plus className="h-4 w-4" />}
-          onPress={onCreateOpen}
+          onPress={() => canCreateTemplate && onCreateOpen()}
+          isDisabled={!canCreateTemplate}
         >
           创建模板
         </Button>
@@ -660,6 +695,7 @@ export default function TemplatesPage() {
                               key="edit"
                               startContent={<Edit className="h-4 w-4" />}
                               onClick={() => startEdit(template)}
+                              isDisabled={!canUpdateTemplate}
                             >
                               编辑
                             </DropdownItem>
@@ -667,6 +703,7 @@ export default function TemplatesPage() {
                               key="copy"
                               startContent={<Copy className="h-4 w-4" />}
                               onClick={() => startCopy(template)}
+                              isDisabled={!canCreateTemplate}
                             >
                               复制
                             </DropdownItem>
@@ -675,6 +712,7 @@ export default function TemplatesPage() {
                                 key="default"
                                 startContent={<Star className="h-4 w-4" />}
                                 onClick={() => handleSetDefault(template)}
+                                isDisabled={!canManageTemplate}
                               >
                                 设为默认
                               </DropdownItem>
@@ -685,6 +723,7 @@ export default function TemplatesPage() {
                                 startContent={<Trash2 className="h-4 w-4" />}
                                 color="danger"
                                 onClick={() => startDelete(template)}
+                                isDisabled={!canDeleteTemplate}
                               >
                                 删除
                               </DropdownItem>
@@ -851,6 +890,7 @@ export default function TemplatesPage() {
               color="primary"
               onPress={handleCreate}
               isLoading={submitLoading}
+              isDisabled={!canCreateTemplate}
             >
               创建
             </Button>
@@ -989,6 +1029,7 @@ export default function TemplatesPage() {
               color="primary"
               onPress={handleUpdate}
               isLoading={submitLoading}
+              isDisabled={!canUpdateTemplate}
             >
               更新
             </Button>
@@ -1024,6 +1065,7 @@ export default function TemplatesPage() {
               color="primary"
               onPress={handleCopy}
               isLoading={submitLoading}
+              isDisabled={!canCreateTemplate}
             >
               复制
             </Button>
@@ -1074,6 +1116,7 @@ export default function TemplatesPage() {
               color="danger"
               onPress={handleDelete}
               isLoading={submitLoading}
+              isDisabled={!canDeleteTemplate}
             >
               确认删除
             </Button>

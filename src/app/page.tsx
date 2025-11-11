@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/stores/auth"
-import { ROUTES } from "@/constants"
+import { useAuthStore, usePermissions } from "@/stores/auth"
+import { ROUTES, ROLE_PERMISSIONS } from "@/constants"
 import { Spinner, Button, Card, CardBody } from "@nextui-org/react"
 import { STORAGE_KEYS } from "@/constants"
+import { resolveWorkspaceFallback } from "@/lib/navigation"
 
 // 开发模式配置
 const DEV_MODE = process.env.NODE_ENV === "development"
@@ -13,7 +14,13 @@ const SKIP_AUTH = process.env.NEXT_PUBLIC_SKIP_AUTH === "true"
 
 export default function HomePage() {
   const router = useRouter()
-  const { isAuthenticated, token, setUser } = useAuthStore()
+  const { isAuthenticated, token, setUser, logout, isInitialized } =
+    useAuthStore()
+  const { permissions, role } = usePermissions()
+  const { route: fallbackRoute, hasAccessibleMenu } = useMemo(
+    () => resolveWorkspaceFallback({ permissions, role }),
+    [permissions, role]
+  )
 
   // 开发模式自动登录
   const handleDevLogin = () => {
@@ -24,21 +31,7 @@ export default function HomePage() {
         username: "开发者",
         email: "dev@example.com",
         role: "admin" as const,
-        permissions: [
-          "products:view",
-          "products:create",
-          "products:update",
-          "products:delete",
-          "matching:create",
-          "matching:view",
-          "review:basic",
-          "review:expert",
-          "price:view",
-          "price:update",
-          "reports:view",
-          "system:config",
-          "user:management",
-        ],
+        permissions: ROLE_PERMISSIONS.admin,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -58,27 +51,43 @@ export default function HomePage() {
   }
 
   useEffect(() => {
-    // 开发模式
+    if (!isInitialized) return
+
+    // ����ģʽ
     if (DEV_MODE) {
-      // 1) 开启跳过认证时，自动登录
+      // 1) ����������֤ʱ���Զ���¼
       if (SKIP_AUTH && !isAuthenticated) {
         handleDevLogin()
         return
       }
-      // 2) 开发模式但不跳过认证时，展示选择界面，不做任何重定向
+      // 2) ����ģʽ����������֤ʱ��չʾѡ����棬�����κ��ض���
       if (!SKIP_AUTH && !isAuthenticated) {
         return
       }
     }
 
-    // 非开发模式或已登录的情况，按正常流程处理
+    // �ǿ���ģʽ���ѵ�¼����������������̴���
     if (isAuthenticated && token) {
-      router.replace(ROUTES.PRODUCTS)
+      if (hasAccessibleMenu) {
+        router.replace(fallbackRoute)
+      } else {
+        logout()
+        router.replace(ROUTES.LOGIN)
+      }
       return
     }
 
     router.replace(ROUTES.LOGIN)
-  }, [isAuthenticated, token, router])
+  }, [
+    fallbackRoute,
+    hasAccessibleMenu,
+    isAuthenticated,
+    isInitialized,
+    logout,
+    router,
+    token,
+  ])
+
 
   // 开发模式显示选择界面
   if (DEV_MODE && !isAuthenticated && !SKIP_AUTH) {
@@ -118,6 +127,14 @@ export default function HomePage() {
             </div>
           </CardBody>
         </Card>
+      </div>
+    )
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Spinner size="lg" />
       </div>
     )
   }

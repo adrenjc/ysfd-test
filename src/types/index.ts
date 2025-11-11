@@ -1,4 +1,5 @@
 /* 用户相关类型 */
+
 export interface User {
   id: string
   username: string
@@ -9,10 +10,31 @@ export interface User {
   department?: string
   position?: string
   email?: string
+  phone?: string
   createdAt: string
   updatedAt: string
 }
 
+export type AdminUserStatus = "active" | "inactive"
+
+export interface AdminUser {
+  id: string
+  name: string
+  username: string
+  email?: string
+  phone?: string
+  role: "admin" | "operator" | "reviewer" | "viewer"
+  permissions: string[]
+  status: AdminUserStatus
+  lastLoginAt?: string
+  createdAt: string
+  isProtected?: boolean
+}
+
+export interface UserListResponse {
+  items: AdminUser[]
+  total: number
+}
 /* 认证相关类型 */
 export interface LoginCredentials {
   username: string
@@ -425,4 +447,9 @@ export interface NavItem {
   children?: NavItem[]
   badge?: string | number
   disabled?: boolean
+  requiredPermissions?: string[]
+  requiredRoles?: string[]
 }
+
+
+

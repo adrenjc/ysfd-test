@@ -1,4 +1,6 @@
 "use client"
+
+import { useMemo } from "react"
 import { useRouter } from "next/navigation"
 import {
   Navbar,
@@ -11,7 +13,6 @@ import {
   DropdownItem,
   Badge,
   Avatar,
-  Switch,
 } from "@nextui-org/react"
 import { Bell, Settings, User, LogOut, Moon, Sun, Monitor } from "lucide-react"
 import { useTheme } from "next-themes"
@@ -25,6 +26,15 @@ interface HeaderProps {
   className?: string
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  admin: "管理员",
+  reviewer: "审核员",
+  operator: "操作员",
+  viewer: "访客",
+}
+
+const formatRoleLabel = (role?: string) => ROLE_LABELS[role ?? ""] ?? "未知角色"
+
 export function Header({ title, className }: HeaderProps) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
@@ -32,15 +42,25 @@ export function Header({ title, className }: HeaderProps) {
   const { notifications } = useAppStore()
   const { success: showSuccess } = useNotifications()
 
-  const unreadNotifications = notifications.filter(n => !n.read)
+  const unreadNotifications = useMemo(
+    () => notifications.filter(n => !n.read),
+    [notifications]
+  )
+
+  const profileDescription = useMemo(() => {
+    const roleText = formatRoleLabel(user?.role)
+    const userId = (user as any)?.id || (user as any)?._id
+    if (!userId) return roleText
+    return `ID ${String(userId).slice(-6).toUpperCase()} · ${roleText}`
+  }, [user])
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme)
-    showSuccess("主题切换", `已切换到${getThemeLabel(newTheme)}模式`)
+    showSuccess("主题已切换", `当前使用${getThemeLabel(newTheme)}模式`)
   }
 
-  const getThemeLabel = (theme: string) => {
-    switch (theme) {
+  const getThemeLabel = (value: string) => {
+    switch (value) {
       case "light":
         return "浅色"
       case "dark":
@@ -55,7 +75,6 @@ export function Header({ title, className }: HeaderProps) {
   const handleLogout = () => {
     logout()
     showSuccess("退出成功", "您已安全退出系统")
-    // 立即跳转到登录页面
     router.push(ROUTES.LOGIN)
   }
 
@@ -68,16 +87,13 @@ export function Header({ title, className }: HeaderProps) {
         content: "gap-4",
       }}
     >
-      {/* 左侧标题 */}
       <NavbarContent justify="start">
         {title && (
           <h1 className="text-xl font-semibold text-foreground">{title}</h1>
         )}
       </NavbarContent>
 
-      {/* 右侧操作区 */}
       <NavbarContent justify="end">
-        {/* 主题切换 */}
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
@@ -85,7 +101,7 @@ export function Header({ title, className }: HeaderProps) {
                 isIconOnly
                 variant="light"
                 size="sm"
-                aria-label="主题切换"
+                aria-label="切换主题"
               >
                 {theme === "light" ? (
                   <Sun className="h-4 w-4" />
@@ -100,16 +116,10 @@ export function Header({ title, className }: HeaderProps) {
               selectedKeys={[theme || "system"]}
               onAction={key => handleThemeChange(key as string)}
             >
-              <DropdownItem
-                key="light"
-                startContent={<Sun className="h-4 w-4" />}
-              >
+              <DropdownItem key="light" startContent={<Sun className="h-4 w-4" />}>
                 浅色模式
               </DropdownItem>
-              <DropdownItem
-                key="dark"
-                startContent={<Moon className="h-4 w-4" />}
-              >
+              <DropdownItem key="dark" startContent={<Moon className="h-4 w-4" />}>
                 深色模式
               </DropdownItem>
               <DropdownItem
@@ -122,7 +132,6 @@ export function Header({ title, className }: HeaderProps) {
           </Dropdown>
         </NavbarItem>
 
-        {/* 通知中心 */}
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
@@ -143,40 +152,37 @@ export function Header({ title, className }: HeaderProps) {
               </Button>
             </DropdownTrigger>
             <DropdownMenu className="w-80">
-              <>
-                {notifications.length === 0 ? (
-                  <DropdownItem key="empty" className="text-center opacity-50">
-                    暂无通知
-                  </DropdownItem>
-                ) : (
-                  notifications.slice(0, 5).map(notification => (
+              {notifications.length === 0 ? (
+                <DropdownItem key="empty" className="text-center opacity-50">
+                  暂无通知
+                </DropdownItem>
+              ) : (
+                <>
+                  {notifications.slice(0, 5).map(notification => (
                     <DropdownItem
                       key={notification.id}
                       className="py-3"
                       description={formatDate(notification.timestamp)}
                     >
                       <div className="flex flex-col">
-                        <span className="font-medium">
-                          {notification.title}
-                        </span>
+                        <span className="font-medium">{notification.title}</span>
                         <span className="text-sm text-default-500">
                           {notification.message}
                         </span>
                       </div>
                     </DropdownItem>
-                  ))
-                )}
-                {notifications.length > 5 ? (
-                  <DropdownItem key="more" className="text-center text-primary">
-                    查看更多通知
-                  </DropdownItem>
-                ) : null}
-              </>
+                  ))}
+                  {notifications.length > 5 && (
+                    <DropdownItem key="more" className="text-center text-primary">
+                      查看全部通知
+                    </DropdownItem>
+                  )}
+                </>
+              )}
             </DropdownMenu>
           </Dropdown>
         </NavbarItem>
 
-        {/* 用户菜单 */}
         <NavbarItem>
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
@@ -191,18 +197,12 @@ export function Header({ title, className }: HeaderProps) {
               <DropdownItem
                 key="profile"
                 className="py-2"
-                description={
-                  user?.role === "admin"
-                    ? "管理员"
-                    : user?.role === "reviewer"
-                      ? "审核员"
-                      : user?.role === "operator"
-                        ? "操作员"
-                        : "未知角色"
-                }
+                description={profileDescription}
                 startContent={<User className="h-4 w-4" />}
               >
-                <span className="font-medium">{user?.username}</span>
+                <span className="font-medium">
+                  {user?.name || user?.username || "Unknown"}
+                </span>
               </DropdownItem>
               <DropdownItem
                 key="settings"

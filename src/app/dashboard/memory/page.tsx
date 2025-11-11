@@ -57,6 +57,7 @@ import {
 } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useNotifications } from "@/stores/app"
+import { usePermissions } from "@/stores/auth"
 import { buildApiUrl } from "@/lib/api"
 import { getAuthHeaders } from "@/lib/auth"
 import { MatchingMemory } from "@/types"
@@ -210,6 +211,14 @@ export default function MemoryManagementPage() {
 
   // 通知系统
   const notifications = useNotifications()
+  const { isViewer } = usePermissions()
+  const isVisitor = isViewer()
+  const visitorActionTip = "游客无法进行此操作"
+  const guardVisitorAction = useCallback(() => {
+    if (!isVisitor) return false
+    notifications.warning("暂无权限", visitorActionTip)
+    return true
+  }, [isVisitor, notifications, visitorActionTip])
 
   // 生成任务唯一标识
   const generateTaskIdentifier = (createdAt: string, taskId: string) => {
@@ -803,6 +812,7 @@ export default function MemoryManagementPage() {
             color="warning"
             startContent={<Archive className="h-4 w-4" />}
             onClick={cleanupDeprecated}
+            isDisabled={isVisitor}
           >
             清理废弃
           </Button>
@@ -812,6 +822,7 @@ export default function MemoryManagementPage() {
             color="danger"
             startContent={<Trash2 className="h-4 w-4" />}
             onClick={clearAllModal.onOpen}
+            isDisabled={isVisitor}
           >
             一键清空
           </Button>
@@ -1325,24 +1336,26 @@ export default function MemoryManagementPage() {
                             <>
                               {/* 检查是否存在同名的活跃记忆，决定是否显示恢复按钮 */}
                               {!hasActiveMemoryWithSameName(memory) ? (
-                                <Tooltip content="恢复激活">
+                                <Tooltip content={isVisitor ? visitorActionTip : "恢复激活"}>
                                   <Button
                                     isIconOnly
                                     size="sm"
                                     variant="light"
                                     color="success"
+                                    isDisabled={isVisitor}
                                     onClick={() => handleRestoreMemory(memory)}
                                   >
                                     <CheckCircle className="h-4 w-4" />
                                   </Button>
                                 </Tooltip>
                               ) : (
-                                <Tooltip content="已存在同名活跃记忆，无法直接恢复">
+                                <Tooltip content={isVisitor ? visitorActionTip : "已存在同名活跃记忆，无法直接恢复"}>
                                   <Button
                                     isIconOnly
                                     size="sm"
                                     variant="light"
                                     color="warning"
+                                    isDisabled={isVisitor}
                                     onClick={() =>
                                       handleConflictRestore(memory)
                                     }
@@ -1351,12 +1364,13 @@ export default function MemoryManagementPage() {
                                   </Button>
                                 </Tooltip>
                               )}
-                              <Tooltip content="删除记忆">
+                              <Tooltip content={isVisitor ? visitorActionTip : "删除记忆"}>
                                 <Button
                                   isIconOnly
                                   size="sm"
                                   variant="light"
                                   color="danger"
+                                  isDisabled={isVisitor}
                                   onClick={() => {
                                     setSelectedMemory(memory)
                                     deleteModal.onOpen()
@@ -1369,34 +1383,37 @@ export default function MemoryManagementPage() {
                           ) : (
                             // 活跃/冲突记忆：显示全部操作
                             <>
-                              <Tooltip content="编辑参数">
+                              <Tooltip content={isVisitor ? visitorActionTip : "编辑参数"}>
                                 <Button
                                   isIconOnly
                                   size="sm"
                                   variant="light"
                                   color="primary"
+                                  isDisabled={isVisitor}
                                   onClick={() => handleEditMemory(memory)}
                                 >
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </Tooltip>
-                              <Tooltip content="重选商品">
+                              <Tooltip content={isVisitor ? visitorActionTip : "重选商品"}>
                                 <Button
                                   isIconOnly
                                   size="sm"
                                   variant="light"
                                   color="secondary"
+                                  isDisabled={isVisitor}
                                   onClick={() => handleReselectProduct(memory)}
                                 >
                                   <Package className="h-4 w-4" />
                                 </Button>
                               </Tooltip>
-                              <Tooltip content="删除记忆">
+                              <Tooltip content={isVisitor ? visitorActionTip : "删除记忆"}>
                                 <Button
                                   isIconOnly
                                   size="sm"
                                   variant="light"
                                   color="danger"
+                                  isDisabled={isVisitor}
                                   onClick={() => {
                                     setSelectedMemory(memory)
                                     deleteModal.onOpen()
@@ -1490,6 +1507,7 @@ export default function MemoryManagementPage() {
                 </Button>
                 <Button
                   color="danger"
+                  isDisabled={isVisitor}
                   onPress={() =>
                     selectedMemory && deleteMemory(selectedMemory._id)
                   }
@@ -1762,6 +1780,7 @@ export default function MemoryManagementPage() {
                 </Button>
                 <Button
                   color="primary"
+                  isDisabled={isVisitor}
                   onPress={editMemory}
                   startContent={
                     selectedMemory &&
@@ -1833,7 +1852,11 @@ export default function MemoryManagementPage() {
                 <Button variant="flat" onPress={onClose}>
                   取消
                 </Button>
-                <Button color="danger" onPress={clearAllMemories}>
+                <Button
+                  color="danger"
+                  onPress={clearAllMemories}
+                  isDisabled={isVisitor}
+                >
                   确认清空
                 </Button>
               </ModalFooter>
@@ -2119,9 +2142,9 @@ export default function MemoryManagementPage() {
                             product.isMatched && !isCurrentProduct
 
                           return (
-                            <Card
-                              key={product._id}
-                              isPressable={!isMatched}
+                              <Card
+                                key={product._id}
+                                isPressable={!isMatched && !isVisitor}
                               className={`min-w-0 transition-all duration-200 ${
                                 isCurrentProduct
                                   ? "border-warning-200 bg-warning-50"
@@ -2129,10 +2152,13 @@ export default function MemoryManagementPage() {
                                     ? "cursor-not-allowed border-default-200 bg-default-50 opacity-60"
                                     : "hover:border-primary-200 hover:bg-primary-50 hover:shadow-md"
                               }`}
-                              onPress={() => {
-                                if (isCurrentProduct) {
-                                  notifications.info(
-                                    "相同商品",
+                                onPress={() => {
+                                  if (guardVisitorAction()) {
+                                    return
+                                  }
+                                  if (isCurrentProduct) {
+                                    notifications.info(
+                                      "相同商品",
                                     "您选择的是当前已匹配的商品"
                                   )
                                 } else if (isMatched) {
@@ -2287,7 +2313,7 @@ export default function MemoryManagementPage() {
                                           : "solid"
                                     }
                                     className="w-full"
-                                    isDisabled={isMatched}
+                                    isDisabled={isMatched || isVisitor}
                                     startContent={
                                       isCurrentProduct ? (
                                         <Clock className="h-3 w-3" />
@@ -2299,6 +2325,9 @@ export default function MemoryManagementPage() {
                                     }
                                     onClick={e => {
                                       e.stopPropagation()
+                                      if (guardVisitorAction()) {
+                                        return
+                                      }
                                       if (isCurrentProduct) {
                                         notifications.info(
                                           "相同商品",
