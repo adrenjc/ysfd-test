@@ -1336,7 +1336,11 @@ export default function MemoryManagementPage() {
                             <>
                               {/* 检查是否存在同名的活跃记忆，决定是否显示恢复按钮 */}
                               {!hasActiveMemoryWithSameName(memory) ? (
-                                <Tooltip content={isVisitor ? visitorActionTip : "恢复激活"}>
+                                <Tooltip
+                                  content={
+                                    isVisitor ? visitorActionTip : "恢复激活"
+                                  }
+                                >
                                   <Button
                                     isIconOnly
                                     size="sm"
@@ -1349,7 +1353,13 @@ export default function MemoryManagementPage() {
                                   </Button>
                                 </Tooltip>
                               ) : (
-                                <Tooltip content={isVisitor ? visitorActionTip : "已存在同名活跃记忆，无法直接恢复"}>
+                                <Tooltip
+                                  content={
+                                    isVisitor
+                                      ? visitorActionTip
+                                      : "已存在同名活跃记忆，无法直接恢复"
+                                  }
+                                >
                                   <Button
                                     isIconOnly
                                     size="sm"
@@ -1364,7 +1374,11 @@ export default function MemoryManagementPage() {
                                   </Button>
                                 </Tooltip>
                               )}
-                              <Tooltip content={isVisitor ? visitorActionTip : "删除记忆"}>
+                              <Tooltip
+                                content={
+                                  isVisitor ? visitorActionTip : "删除记忆"
+                                }
+                              >
                                 <Button
                                   isIconOnly
                                   size="sm"
@@ -1383,7 +1397,11 @@ export default function MemoryManagementPage() {
                           ) : (
                             // 活跃/冲突记忆：显示全部操作
                             <>
-                              <Tooltip content={isVisitor ? visitorActionTip : "编辑参数"}>
+                              <Tooltip
+                                content={
+                                  isVisitor ? visitorActionTip : "编辑参数"
+                                }
+                              >
                                 <Button
                                   isIconOnly
                                   size="sm"
@@ -1395,7 +1413,11 @@ export default function MemoryManagementPage() {
                                   <Edit className="h-4 w-4" />
                                 </Button>
                               </Tooltip>
-                              <Tooltip content={isVisitor ? visitorActionTip : "重选商品"}>
+                              <Tooltip
+                                content={
+                                  isVisitor ? visitorActionTip : "重选商品"
+                                }
+                              >
                                 <Button
                                   isIconOnly
                                   size="sm"
@@ -1407,7 +1429,11 @@ export default function MemoryManagementPage() {
                                   <Package className="h-4 w-4" />
                                 </Button>
                               </Tooltip>
-                              <Tooltip content={isVisitor ? visitorActionTip : "删除记忆"}>
+                              <Tooltip
+                                content={
+                                  isVisitor ? visitorActionTip : "删除记忆"
+                                }
+                              >
                                 <Button
                                   isIconOnly
                                   size="sm"
@@ -2142,9 +2168,9 @@ export default function MemoryManagementPage() {
                             product.isMatched && !isCurrentProduct
 
                           return (
-                              <Card
-                                key={product._id}
-                                isPressable={!isMatched && !isVisitor}
+                            <Card
+                              key={product._id}
+                              isPressable={!isMatched && !isVisitor}
                               className={`min-w-0 transition-all duration-200 ${
                                 isCurrentProduct
                                   ? "border-warning-200 bg-warning-50"
@@ -2152,13 +2178,13 @@ export default function MemoryManagementPage() {
                                     ? "cursor-not-allowed border-default-200 bg-default-50 opacity-60"
                                     : "hover:border-primary-200 hover:bg-primary-50 hover:shadow-md"
                               }`}
-                                onPress={() => {
-                                  if (guardVisitorAction()) {
-                                    return
-                                  }
-                                  if (isCurrentProduct) {
-                                    notifications.info(
-                                      "相同商品",
+                              onPress={() => {
+                                if (guardVisitorAction()) {
+                                  return
+                                }
+                                if (isCurrentProduct) {
+                                  notifications.info(
+                                    "相同商品",
                                     "您选择的是当前已匹配的商品"
                                   )
                                 } else if (isMatched) {

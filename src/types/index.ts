@@ -450,6 +450,3 @@ export interface NavItem {
   requiredPermissions?: string[]
   requiredRoles?: string[]
 }
-
-
-

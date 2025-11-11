@@ -338,14 +338,17 @@ export default function TemplatesPage() {
     } catch (error) {
       console.error("❌ 复制模板失败:", error)
       if (!(error as any)?.isAuthError) {
-        notifications.error("复制失败", (error as Error).message || "无法复制模板")
+        notifications.error(
+          "复制失败",
+          (error as Error).message || "无法复制模板"
+        )
       }
     } finally {
       setSubmitLoading(false)
     }
   }
 
-const handleSetDefault = async (template: ProductTemplate) => {
+  const handleSetDefault = async (template: ProductTemplate) => {
     if (!canManageTemplate) {
       notifications.error("权限不足", "当前角色无法设置默认模板")
       return

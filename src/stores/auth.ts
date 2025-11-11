@@ -40,7 +40,9 @@ interface AuthActions {
   clearError: () => void
   setUser: (user: User | null) => void
   setLoading: (loading: boolean) => void
-  loadPermissionManifest: (force?: boolean) => Promise<RolePermissionsMap | null>
+  loadPermissionManifest: (
+    force?: boolean
+  ) => Promise<RolePermissionsMap | null>
 }
 
 type AuthStore = AuthState & AuthActions
@@ -110,8 +112,7 @@ export const useAuthStore = create<AuthStore>()(
 
           try {
             const manifest = await fetchPermissionManifest()
-            const derivedRolePermissions =
-              createRolePermissionsMap(manifest)
+            const derivedRolePermissions = createRolePermissionsMap(manifest)
 
             set({
               permissionManifest: manifest,
@@ -246,10 +247,7 @@ export const useAuthStore = create<AuthStore>()(
               const { accessToken, refreshToken } = tokens
               if (typeof window !== "undefined") {
                 localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
-                localStorage.setItem(
-                  STORAGE_KEYS.REFRESH_TOKEN,
-                  refreshToken
-                )
+                localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
               } else {
                 set({ token: accessToken, refreshToken })
               }
@@ -316,10 +314,7 @@ export const useAuthStore = create<AuthStore>()(
               const { accessToken, refreshToken } = tokens
               if (typeof window !== "undefined") {
                 localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
-                localStorage.setItem(
-                  STORAGE_KEYS.REFRESH_TOKEN,
-                  refreshToken
-                )
+                localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
               } else {
                 set({ token: accessToken, refreshToken })
               }
@@ -430,14 +425,11 @@ export const useAuthStore = create<AuthStore>()(
           set({ isLoading: true, error: null })
 
           try {
-            const response = await fetch(
-              buildApiUrl("/auth/forgot-password"),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-              }
-            )
+            const response = await fetch(buildApiUrl("/auth/forgot-password"), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email }),
+            })
 
             const data = await response.json()
 

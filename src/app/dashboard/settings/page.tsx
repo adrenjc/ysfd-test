@@ -182,9 +182,13 @@ export default function UserManagementPage() {
     isLoading,
     mutate,
     error: fetchError,
-  } = useSWR(["users", queryParams], ([, params]) => fetchUsers("users", params), {
-    keepPreviousData: true,
-  })
+  } = useSWR(
+    ["users", queryParams],
+    ([, params]) => fetchUsers("users", params),
+    {
+      keepPreviousData: true,
+    }
+  )
 
   useEffect(() => {
     if (fetchError) {
@@ -231,7 +235,7 @@ export default function UserManagementPage() {
     onClose()
   }
 
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (modalType !== "create" && !selectedUser) return
 
     setIsSubmitting(true)
@@ -324,9 +328,7 @@ const handleSubmit = async () => {
               <span className="text-sm font-medium text-foreground">
                 {item.name}
               </span>
-              <span className="text-xs text-default-500">
-                {item.username}
-              </span>
+              <span className="text-xs text-default-500">{item.username}</span>
             </div>
           </div>
         )
@@ -360,13 +362,20 @@ const handleSubmit = async () => {
         const config = statusMap[item.status]
         const Icon = config.icon
         return (
-          <Chip size="sm" color={config.color} variant="flat" startContent={<Icon className="h-3 w-3" />}>
+          <Chip
+            size="sm"
+            color={config.color}
+            variant="flat"
+            startContent={<Icon className="h-3 w-3" />}
+          >
             {config.label}
           </Chip>
         )
       }
       case "lastLoginAt": {
-        const lastLogin = item.lastLoginAt ? formatDate(item.lastLoginAt) : "暂无记录"
+        const lastLogin = item.lastLoginAt
+          ? formatDate(item.lastLoginAt)
+          : "暂无记录"
         const createdAt = formatDate(item.createdAt)
         return (
           <div className="flex flex-col">
@@ -436,9 +445,7 @@ const handleSubmit = async () => {
             <Users className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">
-              用户管理
-            </h1>
+            <h1 className="text-2xl font-semibold text-foreground">用户管理</h1>
             <p className="text-sm text-default-500">
               统一管理平台成员、权限与账号状态
             </p>

@@ -116,10 +116,16 @@ export function Header({ title, className }: HeaderProps) {
               selectedKeys={[theme || "system"]}
               onAction={key => handleThemeChange(key as string)}
             >
-              <DropdownItem key="light" startContent={<Sun className="h-4 w-4" />}>
+              <DropdownItem
+                key="light"
+                startContent={<Sun className="h-4 w-4" />}
+              >
                 浅色模式
               </DropdownItem>
-              <DropdownItem key="dark" startContent={<Moon className="h-4 w-4" />}>
+              <DropdownItem
+                key="dark"
+                startContent={<Moon className="h-4 w-4" />}
+              >
                 深色模式
               </DropdownItem>
               <DropdownItem
@@ -165,7 +171,9 @@ export function Header({ title, className }: HeaderProps) {
                       description={formatDate(notification.timestamp)}
                     >
                       <div className="flex flex-col">
-                        <span className="font-medium">{notification.title}</span>
+                        <span className="font-medium">
+                          {notification.title}
+                        </span>
                         <span className="text-sm text-default-500">
                           {notification.message}
                         </span>
@@ -173,7 +181,10 @@ export function Header({ title, className }: HeaderProps) {
                     </DropdownItem>
                   ))}
                   {notifications.length > 5 && (
-                    <DropdownItem key="more" className="text-center text-primary">
+                    <DropdownItem
+                      key="more"
+                      className="text-center text-primary"
+                    >
                       查看全部通知
                     </DropdownItem>
                   )}

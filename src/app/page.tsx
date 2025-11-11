@@ -87,7 +87,6 @@ export default function HomePage() {
     token,
   ])
 
-
   // 开发模式显示选择界面
   if (DEV_MODE && !isAuthenticated && !SKIP_AUTH) {
     return (

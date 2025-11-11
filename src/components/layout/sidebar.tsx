@@ -88,8 +88,7 @@ export function Sidebar({ className }: SidebarProps) {
         (role ? item.requiredRoles.includes(role) : false)
 
       const permissionAllowed =
-        !item.requiredPermissions ||
-        hasAnyPermission(item.requiredPermissions)
+        !item.requiredPermissions || hasAnyPermission(item.requiredPermissions)
 
       return roleAllowed && permissionAllowed
     })
@@ -194,7 +193,11 @@ export function Sidebar({ className }: SidebarProps) {
       {SHOW_ACCOUNT_ACTIONS && (
         <div className="p-3">
           <div className="flex gap-2">
-            <Tooltip content="个人设置" placement="top" isDisabled={!sidebarCollapsed}>
+            <Tooltip
+              content="个人设置"
+              placement="top"
+              isDisabled={!sidebarCollapsed}
+            >
               <Button
                 isIconOnly={sidebarCollapsed}
                 variant="light"
@@ -203,14 +206,20 @@ export function Sidebar({ className }: SidebarProps) {
                   "text-default-500",
                   sidebarCollapsed ? "w-full" : "flex-1"
                 )}
-                startContent={!sidebarCollapsed ? <User className="h-4 w-4" /> : undefined}
+                startContent={
+                  !sidebarCollapsed ? <User className="h-4 w-4" /> : undefined
+                }
                 aria-label="个人设置"
               >
                 {sidebarCollapsed ? <User className="h-4 w-4" /> : "设置"}
               </Button>
             </Tooltip>
 
-            <Tooltip content="退出登录" placement="top" isDisabled={!sidebarCollapsed}>
+            <Tooltip
+              content="退出登录"
+              placement="top"
+              isDisabled={!sidebarCollapsed}
+            >
               <Button
                 isIconOnly={sidebarCollapsed}
                 variant="light"
@@ -220,7 +229,9 @@ export function Sidebar({ className }: SidebarProps) {
                   "text-danger",
                   sidebarCollapsed ? "w-full" : "flex-1"
                 )}
-                startContent={!sidebarCollapsed ? <LogOut className="h-4 w-4" /> : undefined}
+                startContent={
+                  !sidebarCollapsed ? <LogOut className="h-4 w-4" /> : undefined
+                }
                 aria-label="退出登录"
               >
                 {sidebarCollapsed ? <LogOut className="h-4 w-4" /> : "退出"}

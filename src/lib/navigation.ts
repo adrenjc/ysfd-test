@@ -16,8 +16,7 @@ export const resolveWorkspaceFallback = ({
     if (!item.href) return false
 
     const roleAllowed =
-      !item.requiredRoles ||
-      (role ? item.requiredRoles.includes(role) : false)
+      !item.requiredRoles || (role ? item.requiredRoles.includes(role) : false)
 
     const permissionAllowed =
       !item.requiredPermissions ||

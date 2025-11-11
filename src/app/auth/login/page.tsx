@@ -96,12 +96,10 @@ export default function LoginPage() {
   const { success: showSuccess, error: showError } = useNotifications()
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("login")
-  const [loginForm, setLoginForm] = useState<LoginCredentials>(
-    loginInitialState
-  )
-  const [registerForm, setRegisterForm] = useState<RegisterFormState>(
-    registerInitialState
-  )
+  const [loginForm, setLoginForm] =
+    useState<LoginCredentials>(loginInitialState)
+  const [registerForm, setRegisterForm] =
+    useState<RegisterFormState>(registerInitialState)
   const [loginErrors, setLoginErrors] = useState<Record<string, string>>({})
   const [registerErrors, setRegisterErrors] = useState<Record<string, string>>(
     {}
@@ -306,169 +304,77 @@ export default function LoginPage() {
             transition={{ duration: 0.4, ease: [0.2, 0.8, 0.4, 1] }}
           >
             <Card className="relative overflow-hidden border border-white/10 bg-white/80 shadow-2xl shadow-blue-500/20 backdrop-blur-xl dark:bg-slate-900/70">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500" />
-            <CardHeader className="flex flex-col items-center gap-2 pb-3 pt-8 text-center">
-              <span className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-blue-500">
-                <Sparkles className="h-3.5 w-3.5" />
-                欢迎回到 {APP_NAME}
-              </span>
-              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
-                登录你的智能工作台
-              </h2>
-              <p className="max-w-sm text-sm text-slate-500 dark:text-slate-300">
-                统一入口，助力商品档案匹配、审核协作与价格管控在一个界面顺畅完成。
-              </p>
-            </CardHeader>
-            <Divider className="mx-12 mb-6 mt-2 border-white/20" />
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500" />
+              <CardHeader className="flex flex-col items-center gap-2 pb-3 pt-8 text-center">
+                <span className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-1 text-xs font-medium uppercase tracking-widest text-blue-500">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  欢迎回到 {APP_NAME}
+                </span>
+                <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">
+                  登录你的智能工作台
+                </h2>
+                <p className="max-w-sm text-sm text-slate-500 dark:text-slate-300">
+                  统一入口，助力商品档案匹配、审核协作与价格管控在一个界面顺畅完成。
+                </p>
+              </CardHeader>
+              <Divider className="mx-12 mb-6 mt-2 border-white/20" />
 
-            <CardBody className="overflow-hidden pb-10">
-              <Tabs
-                selectedKey={activeTab}
-                onSelectionChange={key => setActiveTab(key as ActiveTab)}
-                variant="solid"
-                classNames={{
-                  tabList:
-                    "relative grid h-12 grid-cols-2 gap-2 rounded-xl bg-slate-100/70 p-1 dark:bg-slate-800/80 overflow-hidden border border-white/30",
-                  cursor:
-                    "rounded-xl bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500 shadow-md transition-transform duration-500 ease-[0.45,0,0.55,1] !inset-y-0",
-                  tab: "h-full max-w-none rounded-xl text-sm font-semibold text-slate-500 transition-colors data-[selected=true]:text-white dark:text-slate-300",
-                }}
-              >
-                <Tab
-                  key="login"
-                  title={
-                    <div className="flex items-center justify-center gap-2">
-                      <LogIn className="h-4 w-4" />
-                      <span>账户登录</span>
-                    </div>
-                  }
+              <CardBody className="overflow-hidden pb-10">
+                <Tabs
+                  selectedKey={activeTab}
+                  onSelectionChange={key => setActiveTab(key as ActiveTab)}
+                  variant="solid"
+                  classNames={{
+                    tabList:
+                      "relative grid h-12 grid-cols-2 gap-2 rounded-xl bg-slate-100/70 p-1 dark:bg-slate-800/80 overflow-hidden border border-white/30",
+                    cursor:
+                      "rounded-xl bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-500 shadow-md transition-transform duration-500 ease-[0.45,0,0.55,1] !inset-y-0",
+                    tab: "h-full max-w-none rounded-xl text-sm font-semibold text-slate-500 transition-colors data-[selected=true]:text-white dark:text-slate-300",
+                  }}
                 >
-                  <AnimatePresence mode="wait">
-                    {activeTab === "login" && (
-                      <motion.form
-                        key="login-form"
-                        onSubmit={handleLoginSubmit}
-                        className="mt-6 flex flex-col gap-5"
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -16 }}
-                        transition={{ duration: 0.45, ease: [0.33, 1, 0.68, 1] }}
-                      >
-                        <Input
-                          label="用户名"
-                          variant="bordered"
-                          value={loginForm.username}
-                          onValueChange={value =>
-                            handleLoginChange("username", value)
-                          }
-                          startContent={
-                            <User className="h-4 w-4 text-slate-400" />
-                          }
-                          isInvalid={!!loginErrors.username}
-                          errorMessage={loginErrors.username}
-                          placeholder="输入注册时的用户名"
-                        />
-                        <Input
-                          label="密码"
-                          variant="bordered"
-                          value={loginForm.password}
-                          onValueChange={value =>
-                            handleLoginChange("password", value)
-                          }
-                          startContent={
-                            <Lock className="h-4 w-4 text-slate-400" />
-                          }
-                          endContent={
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setLoginPasswordVisible(v => !v)
-                              }
-                              className="text-slate-400 transition hover:text-slate-600 focus:outline-none"
-                            >
-                              {loginPasswordVisible ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </button>
-                          }
-                          type={loginPasswordVisible ? "text" : "password"}
-                          isInvalid={!!loginErrors.password}
-                          errorMessage={loginErrors.password}
-                          placeholder="请输入密码"
-                        />
-                        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
-                          <Checkbox
-                            isSelected={rememberMe}
-                            onValueChange={setRememberMe}
-                            size="sm"
-                          >
-                            记住我
-                          </Checkbox>
-                          <Link
-                            className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                            onPress={onForgotOpen}
-                          >
-                            忘记密码？
-                          </Link>
-                        </div>
-                        <Button
-                          type="submit"
-                          size="lg"
-                          className="h-12 w-full rounded-xl bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:shadow-xl hover:brightness-110"
-                          isLoading={loginSubmitting}
-                        >
-                          {loginSubmitting ? "登录中..." : "立即登录"}
-                        </Button>
-                      </motion.form>
-                    )}
-                  </AnimatePresence>
-                </Tab>
-
-                <Tab
-                  key="register"
-                  title={
-                    <div className="flex items-center justify-center gap-2">
-                      <UserPlus className="h-4 w-4" />
-                      <span>快速注册</span>
-                    </div>
-                  }
-                >
-                  <AnimatePresence mode="wait">
-                    {activeTab === "register" && (
-                      <motion.div
-                        key="register-form"
-                        className="mt-6"
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -16 }}
-                        transition={{ duration: 0.45, ease: [0.33, 1, 0.68, 1] }}
-                      >
-                        <form
-                          onSubmit={handleRegisterSubmit}
-                          className="flex flex-col gap-5"
+                  <Tab
+                    key="login"
+                    title={
+                      <div className="flex items-center justify-center gap-2">
+                        <LogIn className="h-4 w-4" />
+                        <span>账户登录</span>
+                      </div>
+                    }
+                  >
+                    <AnimatePresence mode="wait">
+                      {activeTab === "login" && (
+                        <motion.form
+                          key="login-form"
+                          onSubmit={handleLoginSubmit}
+                          className="mt-6 flex flex-col gap-5"
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -16 }}
+                          transition={{
+                            duration: 0.45,
+                            ease: [0.33, 1, 0.68, 1],
+                          }}
                         >
                           <Input
                             label="用户名"
                             variant="bordered"
-                            value={registerForm.username}
-                          onValueChange={value =>
-                            handleRegisterChange("username", value)
-                          }
-                          startContent={
-                            <User className="h-4 w-4 text-slate-400" />
-                          }
-                          isInvalid={!!registerErrors.username}
-                          errorMessage={registerErrors.username}
-                          placeholder="用于登录，支持中英文与数字，至少 3 个字符"
-                        />
+                            value={loginForm.username}
+                            onValueChange={value =>
+                              handleLoginChange("username", value)
+                            }
+                            startContent={
+                              <User className="h-4 w-4 text-slate-400" />
+                            }
+                            isInvalid={!!loginErrors.username}
+                            errorMessage={loginErrors.username}
+                            placeholder="输入注册时的用户名"
+                          />
                           <Input
                             label="密码"
                             variant="bordered"
-                            value={registerForm.password}
+                            value={loginForm.password}
                             onValueChange={value =>
-                              handleRegisterChange("password", value)
+                              handleLoginChange("password", value)
                             }
                             startContent={
                               <Lock className="h-4 w-4 text-slate-400" />
@@ -476,77 +382,180 @@ export default function LoginPage() {
                             endContent={
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setRegisterPasswordVisible(v => !v)
-                                }
+                                onClick={() => setLoginPasswordVisible(v => !v)}
                                 className="text-slate-400 transition hover:text-slate-600 focus:outline-none"
                               >
-                                {registerPasswordVisible ? (
+                                {loginPasswordVisible ? (
                                   <EyeOff className="h-4 w-4" />
                                 ) : (
                                   <Eye className="h-4 w-4" />
                                 )}
                               </button>
                             }
-                            type={registerPasswordVisible ? "text" : "password"}
-                            isInvalid={!!registerErrors.password}
-                            errorMessage={registerErrors.password}
-                            placeholder="至少 6 位，建议包含数字与字母"
+                            type={loginPasswordVisible ? "text" : "password"}
+                            isInvalid={!!loginErrors.password}
+                            errorMessage={loginErrors.password}
+                            placeholder="请输入密码"
                           />
-                          <Input
-                            label="确认密码"
-                            variant="bordered"
-                            value={registerForm.confirmPassword}
-                            onValueChange={value =>
-                              handleRegisterChange("confirmPassword", value)
-                            }
-                            startContent={
-                              <Lock className="h-4 w-4 text-slate-400" />
-                            }
-                            endContent={
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setRegisterConfirmVisible(v => !v)
-                                }
-                                className="text-slate-400 transition hover:text-slate-600 focus:outline-none"
-                              >
-                                {registerConfirmVisible ? (
-                                  <EyeOff className="h-4 w-4" />
-                                ) : (
-                                  <Eye className="h-4 w-4" />
-                                )}
-                              </button>
-                            }
-                            type={registerConfirmVisible ? "text" : "password"}
-                            isInvalid={!!registerErrors.confirmPassword}
-                            errorMessage={registerErrors.confirmPassword}
-                            placeholder="再次输入密码"
-                          />
+                          <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
+                            <Checkbox
+                              isSelected={rememberMe}
+                              onValueChange={setRememberMe}
+                              size="sm"
+                            >
+                              记住我
+                            </Checkbox>
+                            <Link
+                              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                              onPress={onForgotOpen}
+                            >
+                              忘记密码？
+                            </Link>
+                          </div>
                           <Button
                             type="submit"
                             size="lg"
-                            className="h-12 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-base font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:brightness-110"
-                            isLoading={registerSubmitting}
+                            className="h-12 w-full rounded-xl bg-gradient-to-r from-blue-500 via-sky-500 to-indigo-500 text-base font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:shadow-xl hover:brightness-110"
+                            isLoading={loginSubmitting}
                           >
-                            {registerSubmitting ? "创建中..." : "立即注册并登录"}
+                            {loginSubmitting ? "登录中..." : "立即登录"}
                           </Button>
-                          <p className="text-center text-xs text-slate-500">
-                            注册即表示你已知晓并同意平台使用规范。
-                          </p>
-                        </form>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Tab>
-              </Tabs>
-            </CardBody>
-          </Card>
+                        </motion.form>
+                      )}
+                    </AnimatePresence>
+                  </Tab>
+
+                  <Tab
+                    key="register"
+                    title={
+                      <div className="flex items-center justify-center gap-2">
+                        <UserPlus className="h-4 w-4" />
+                        <span>快速注册</span>
+                      </div>
+                    }
+                  >
+                    <AnimatePresence mode="wait">
+                      {activeTab === "register" && (
+                        <motion.div
+                          key="register-form"
+                          className="mt-6"
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -16 }}
+                          transition={{
+                            duration: 0.45,
+                            ease: [0.33, 1, 0.68, 1],
+                          }}
+                        >
+                          <form
+                            onSubmit={handleRegisterSubmit}
+                            className="flex flex-col gap-5"
+                          >
+                            <Input
+                              label="用户名"
+                              variant="bordered"
+                              value={registerForm.username}
+                              onValueChange={value =>
+                                handleRegisterChange("username", value)
+                              }
+                              startContent={
+                                <User className="h-4 w-4 text-slate-400" />
+                              }
+                              isInvalid={!!registerErrors.username}
+                              errorMessage={registerErrors.username}
+                              placeholder="用于登录，支持中英文与数字，至少 3 个字符"
+                            />
+                            <Input
+                              label="密码"
+                              variant="bordered"
+                              value={registerForm.password}
+                              onValueChange={value =>
+                                handleRegisterChange("password", value)
+                              }
+                              startContent={
+                                <Lock className="h-4 w-4 text-slate-400" />
+                              }
+                              endContent={
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setRegisterPasswordVisible(v => !v)
+                                  }
+                                  className="text-slate-400 transition hover:text-slate-600 focus:outline-none"
+                                >
+                                  {registerPasswordVisible ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </button>
+                              }
+                              type={
+                                registerPasswordVisible ? "text" : "password"
+                              }
+                              isInvalid={!!registerErrors.password}
+                              errorMessage={registerErrors.password}
+                              placeholder="至少 6 位，建议包含数字与字母"
+                            />
+                            <Input
+                              label="确认密码"
+                              variant="bordered"
+                              value={registerForm.confirmPassword}
+                              onValueChange={value =>
+                                handleRegisterChange("confirmPassword", value)
+                              }
+                              startContent={
+                                <Lock className="h-4 w-4 text-slate-400" />
+                              }
+                              endContent={
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setRegisterConfirmVisible(v => !v)
+                                  }
+                                  className="text-slate-400 transition hover:text-slate-600 focus:outline-none"
+                                >
+                                  {registerConfirmVisible ? (
+                                    <EyeOff className="h-4 w-4" />
+                                  ) : (
+                                    <Eye className="h-4 w-4" />
+                                  )}
+                                </button>
+                              }
+                              type={
+                                registerConfirmVisible ? "text" : "password"
+                              }
+                              isInvalid={!!registerErrors.confirmPassword}
+                              errorMessage={registerErrors.confirmPassword}
+                              placeholder="再次输入密码"
+                            />
+                            <Button
+                              type="submit"
+                              size="lg"
+                              className="h-12 w-full rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-base font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:brightness-110"
+                              isLoading={registerSubmitting}
+                            >
+                              {registerSubmitting
+                                ? "创建中..."
+                                : "立即注册并登录"}
+                            </Button>
+                            <p className="text-center text-xs text-slate-500">
+                              注册即表示你已知晓并同意平台使用规范。
+                            </p>
+                          </form>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Tab>
+                </Tabs>
+              </CardBody>
+            </Card>
           </motion.div>
 
           <div className="mt-10 flex flex-col items-center gap-3 text-center text-xs text-slate-500">
             <p>
-              © {new Date().getFullYear()} Smart Match System · 智能商品匹配服务平台
+              © {new Date().getFullYear()} Smart Match System ·
+              智能商品匹配服务平台
             </p>
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white/60 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300">

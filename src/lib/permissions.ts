@@ -10,9 +10,7 @@ export type PermissionsManifest = {
   roles: Record<string, string[]>
 }
 
-export type RolePermissionsMap = Readonly<
-  Record<string, readonly string[]>
->
+export type RolePermissionsMap = Readonly<Record<string, readonly string[]>>
 
 type ManifestResponse = {
   success: boolean
@@ -27,9 +25,7 @@ export const fetchPermissionManifest =
     )
 
     if (!response?.success || !response.data) {
-      throw new Error(
-        response?.message || "Failed to load permission manifest"
-      )
+      throw new Error(response?.message || "Failed to load permission manifest")
     }
 
     return response.data

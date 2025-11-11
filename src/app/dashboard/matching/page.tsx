@@ -743,7 +743,11 @@ function MatchingPage() {
             startContent={<Upload className="h-4 w-4" />}
             onClick={handleUploadOpen}
             isDisabled={!canCreateMatching || !!permissionError}
-            title={!canCreateMatching ? "当前角色没有创建匹配任务的权限" : permissionError || undefined}
+            title={
+              !canCreateMatching
+                ? "当前角色没有创建匹配任务的权限"
+                : permissionError || undefined
+            }
           >
             新建匹配任务
           </Button>
@@ -778,185 +782,183 @@ function MatchingPage() {
           </CardBody>
         ) : (
           <CardBody>
-          {/* 任务状态Tab */}
-          <Tabs
-            selectedKey={activeTab}
-            onSelectionChange={key => setActiveTab(key as string)}
-            className="mb-4"
-          >
-            <Tab
-              key="all"
-              title={
-                <div className="flex items-center gap-2">
-                  <span>全部</span>
-                  {taskCounts.all > 0 && (
-                    <Chip size="sm" variant="flat" color="default">
-                      {taskCounts.all}
-                    </Chip>
-                  )}
-                </div>
-              }
-            />
-            <Tab
-              key="review"
-              title={
-                <div className="flex items-center gap-2">
-                  <span>待审核</span>
-                  {taskCounts.review > 0 && (
-                    <Chip size="sm" variant="flat" color="warning">
-                      {taskCounts.review}
-                    </Chip>
-                  )}
-                </div>
-              }
-            />
-            <Tab
-              key="processing"
-              title={
-                <div className="flex items-center gap-2">
-                  <span>处理中</span>
-                  {taskCounts.processing > 0 && (
-                    <Chip size="sm" variant="flat" color="primary">
-                      {taskCounts.processing}
-                    </Chip>
-                  )}
-                </div>
-              }
-            />
-            <Tab
-              key="completed"
-              title={
-                <div className="flex items-center gap-2">
-                  <span>已完成</span>
-                  {taskCounts.completed > 0 && (
-                    <Chip size="sm" variant="flat" color="success">
-                      {taskCounts.completed}
-                    </Chip>
-                  )}
-                </div>
-              }
-            />
-            <Tab
-              key="pending"
-              title={
-                <div className="flex items-center gap-2">
-                  <span>等待中</span>
-                  {taskCounts.pending > 0 && (
-                    <Chip size="sm" variant="flat" color="default">
-                      {taskCounts.pending}
-                    </Chip>
-                  )}
-                </div>
-              }
-            />
-            {taskCounts.exception > 0 && (
+            {/* 任务状态Tab */}
+            <Tabs
+              selectedKey={activeTab}
+              onSelectionChange={key => setActiveTab(key as string)}
+              className="mb-4"
+            >
               <Tab
-                key="exception"
+                key="all"
                 title={
                   <div className="flex items-center gap-2">
-                    <span>异常</span>
-                    <Chip size="sm" variant="flat" color="danger">
-                      {taskCounts.exception}
-                    </Chip>
+                    <span>全部</span>
+                    {taskCounts.all > 0 && (
+                      <Chip size="sm" variant="flat" color="default">
+                        {taskCounts.all}
+                      </Chip>
+                    )}
                   </div>
                 }
               />
-            )}
-          </Tabs>
-
-          {/* 任务列表内容 */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="h-6 w-6 animate-spin" />
-              <span className="ml-2">加载中...</span>
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <EmptyState
-              icon={<FileText className="h-12 w-12" />}
-              title={
-                activeTab === "all"
-                  ? "暂无匹配任务"
-                  : `暂无${activeTab === "review" ? "待审核" : activeTab === "processing" ? "处理中" : activeTab === "completed" ? "已完成" : activeTab === "pending" ? "等待中" : "异常"}任务`
-              }
-              description={
-                activeTab === "all"
-                  ? "上传您的批发清单文件开始智能匹配"
-                  : "切换到其他标签页查看更多任务"
-              }
-              action={
-                activeTab === "all" && canCreateMatching
-                  ? {
-                      label: "新建任务",
-                      onClick: handleUploadOpen,
-                    }
-                  : undefined
-              }
-            />
-          ) : (
-            <Table aria-label="匹配任务表格">
-              <TableHeader>
-                <TableColumn>任务标识</TableColumn>
-                <TableColumn>文件名</TableColumn>
-                <TableColumn>使用模板</TableColumn>
-                <TableColumn>状态</TableColumn>
-                <TableColumn>优先级</TableColumn>
-                <TableColumn>进度</TableColumn>
-                <TableColumn>匹配率</TableColumn>
-                <TableColumn>创建时间</TableColumn>
-                <TableColumn>操作</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {filteredTasks.map(task => (
-                  <TableRow key={task._id}>
-                    <TableCell>
-                      <div className="font-mono text-xs">
-                        <span className="font-medium text-primary">
-                          {generateTaskIdentifier(task)}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{task.originalFilename}</p>
-                        {task.metadata.description && (
-                          <p className="text-xs text-default-500">
-                            {task.metadata.description}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Chip variant="flat" size="sm" color="secondary">
-                        {task.templateName || "未知模板"}
+              <Tab
+                key="review"
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>待审核</span>
+                    {taskCounts.review > 0 && (
+                      <Chip size="sm" variant="flat" color="warning">
+                        {taskCounts.review}
                       </Chip>
-                    </TableCell>
-                    <TableCell>
-                      <StatusChip status={task.status} />
-                    </TableCell>
-                    <TableCell>
-                      <PriorityChip priority={task.metadata.priority} />
-                    </TableCell>
-                    <TableCell>{renderProgress(task)}</TableCell>
-                    <TableCell>
-                      <span className="font-medium text-success">
-                        {task.statistics.matchRate.toFixed(1)}%
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-default-500">
-                        {formatDate(task.createdAt)}
-                      </span>
-                    </TableCell>
-                    <TableCell>{renderActions(task)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                    )}
+                  </div>
+                }
+              />
+              <Tab
+                key="processing"
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>处理中</span>
+                    {taskCounts.processing > 0 && (
+                      <Chip size="sm" variant="flat" color="primary">
+                        {taskCounts.processing}
+                      </Chip>
+                    )}
+                  </div>
+                }
+              />
+              <Tab
+                key="completed"
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>已完成</span>
+                    {taskCounts.completed > 0 && (
+                      <Chip size="sm" variant="flat" color="success">
+                        {taskCounts.completed}
+                      </Chip>
+                    )}
+                  </div>
+                }
+              />
+              <Tab
+                key="pending"
+                title={
+                  <div className="flex items-center gap-2">
+                    <span>等待中</span>
+                    {taskCounts.pending > 0 && (
+                      <Chip size="sm" variant="flat" color="default">
+                        {taskCounts.pending}
+                      </Chip>
+                    )}
+                  </div>
+                }
+              />
+              {taskCounts.exception > 0 && (
+                <Tab
+                  key="exception"
+                  title={
+                    <div className="flex items-center gap-2">
+                      <span>异常</span>
+                      <Chip size="sm" variant="flat" color="danger">
+                        {taskCounts.exception}
+                      </Chip>
+                    </div>
+                  }
+                />
+              )}
+            </Tabs>
 
-        </CardBody>
+            {/* 任务列表内容 */}
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="h-6 w-6 animate-spin" />
+                <span className="ml-2">加载中...</span>
+              </div>
+            ) : filteredTasks.length === 0 ? (
+              <EmptyState
+                icon={<FileText className="h-12 w-12" />}
+                title={
+                  activeTab === "all"
+                    ? "暂无匹配任务"
+                    : `暂无${activeTab === "review" ? "待审核" : activeTab === "processing" ? "处理中" : activeTab === "completed" ? "已完成" : activeTab === "pending" ? "等待中" : "异常"}任务`
+                }
+                description={
+                  activeTab === "all"
+                    ? "上传您的批发清单文件开始智能匹配"
+                    : "切换到其他标签页查看更多任务"
+                }
+                action={
+                  activeTab === "all" && canCreateMatching
+                    ? {
+                        label: "新建任务",
+                        onClick: handleUploadOpen,
+                      }
+                    : undefined
+                }
+              />
+            ) : (
+              <Table aria-label="匹配任务表格">
+                <TableHeader>
+                  <TableColumn>任务标识</TableColumn>
+                  <TableColumn>文件名</TableColumn>
+                  <TableColumn>使用模板</TableColumn>
+                  <TableColumn>状态</TableColumn>
+                  <TableColumn>优先级</TableColumn>
+                  <TableColumn>进度</TableColumn>
+                  <TableColumn>匹配率</TableColumn>
+                  <TableColumn>创建时间</TableColumn>
+                  <TableColumn>操作</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {filteredTasks.map(task => (
+                    <TableRow key={task._id}>
+                      <TableCell>
+                        <div className="font-mono text-xs">
+                          <span className="font-medium text-primary">
+                            {generateTaskIdentifier(task)}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{task.originalFilename}</p>
+                          {task.metadata.description && (
+                            <p className="text-xs text-default-500">
+                              {task.metadata.description}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Chip variant="flat" size="sm" color="secondary">
+                          {task.templateName || "未知模板"}
+                        </Chip>
+                      </TableCell>
+                      <TableCell>
+                        <StatusChip status={task.status} />
+                      </TableCell>
+                      <TableCell>
+                        <PriorityChip priority={task.metadata.priority} />
+                      </TableCell>
+                      <TableCell>{renderProgress(task)}</TableCell>
+                      <TableCell>
+                        <span className="font-medium text-success">
+                          {task.statistics.matchRate.toFixed(1)}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-default-500">
+                          {formatDate(task.createdAt)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{renderActions(task)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardBody>
         )}
-
       </Card>
 
       {/* 上传任务模态框 */}

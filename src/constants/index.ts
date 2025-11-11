@@ -162,4 +162,3 @@ export const TABLE_CONFIG = {
   MIN_COLUMN_WIDTH: 100,
   MAX_COLUMN_WIDTH: 400,
 } as const
-

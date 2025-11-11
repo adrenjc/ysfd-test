@@ -114,7 +114,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex max-w-md flex-col items-center gap-4 text-center">
-          <h2 className="text-2xl font-semibold text-foreground">暂无访问权限</h2>
+          <h2 className="text-2xl font-semibold text-foreground">
+            暂无访问权限
+          </h2>
           <p className="text-sm text-default-500">
             当前账号无法访问该页面，请联系管理员调整角色或权限配置。
           </p>
@@ -148,4 +150,3 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   )
 }
-
