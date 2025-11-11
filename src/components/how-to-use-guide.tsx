@@ -98,75 +98,68 @@ const SectionTag = ({ label }: { label: string }) => (
   </Chip>
 )
 
-const StepsList = ({ tab }: { tab: GuideTab }) => (
+const StepsList = ({
+  tab,
+  sample,
+}: {
+  tab: GuideTab
+  sample?: { label: string; path: string }
+}) => (
   <ol className="space-y-4">
     {GUIDE_STEPS[tab].map((step, index) => (
       <li
         key={step.title}
         className="rounded-2xl border border-default-100 bg-content1/60 p-4 shadow-sm"
       >
-        <div className="flex items-start gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-            {index + 1}
-          </span>
-          <div className="space-y-2">
-            <div>
-              <p className="text-sm font-medium uppercase text-default-400">
-                STEP {index + 1}
-              </p>
-              <h4 className="text-lg font-semibold text-foreground">
-                {step.title}
-              </h4>
-              <p className="text-sm text-default-500">{step.description}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {step.highlights.map(highlight => (
-                <Chip
-                  key={highlight}
-                  size="sm"
-                  variant="flat"
-                  color="success"
-                  startContent={<CheckCircle2 className="h-3 w-3" />}
-                >
-                  {highlight}
-                </Chip>
-              ))}
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex items-start gap-3">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+              {index + 1}
+            </span>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm font-medium uppercase text-default-400">
+                  STEP {index + 1}
+                </p>
+                <h4 className="text-lg font-semibold text-foreground">
+                  {step.title}
+                </h4>
+                <p className="text-sm text-default-500">{step.description}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {step.highlights.map(highlight => (
+                  <Chip
+                    key={highlight}
+                    size="sm"
+                    variant="flat"
+                    color="success"
+                    startContent={<CheckCircle2 className="h-3 w-3" />}
+                  >
+                    {highlight}
+                  </Chip>
+                ))}
+              </div>
             </div>
           </div>
+
+          {sample && index === 0 && (
+            <Button
+              as="a"
+              href={sample.path}
+              download
+              variant="flat"
+              color="primary"
+              startContent={<FileDown className="h-4 w-4" />}
+              className="md:self-center"
+            >
+              {sample.label}
+            </Button>
+          )}
         </div>
       </li>
     ))}
   </ol>
 )
-
-const SampleCard = ({ tab }: { tab: GuideTab }) => {
-  const info = SAMPLE_FILES[tab]
-
-  return (
-    <Card className="border border-default-100 bg-content2/70">
-      <CardBody className="space-y-3">
-        <div className="flex items-center justify-between gap-4">
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-foreground">
-              {info.label}
-            </p>
-            <p className="text-xs text-default-500">{info.description}</p>
-          </div>
-          <Button
-            as="a"
-            href={info.path}
-            download
-            variant="flat"
-            color="primary"
-            startContent={<FileDown className="h-4 w-4" />}
-          >
-            下载
-          </Button>
-        </div>
-      </CardBody>
-    </Card>
-  )
-}
 
 export function HowToUseGuide({ defaultTab = "product" }: HowToUseGuideProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -235,10 +228,7 @@ export function HowToUseGuide({ defaultTab = "product" }: HowToUseGuideProps) {
                         </div>
                       }
                     >
-                      <div className="space-y-6">
-                        <StepsList tab="product" />
-                        <SampleCard tab="product" />
-                      </div>
+                      <StepsList tab="product" sample={SAMPLE_FILES.product} />
                     </Tab>
 
                     <Tab
@@ -250,21 +240,15 @@ export function HowToUseGuide({ defaultTab = "product" }: HowToUseGuideProps) {
                         </div>
                       }
                     >
-                      <div className="space-y-6">
-                        <StepsList tab="matching" />
-                        <SampleCard tab="matching" />
-                      </div>
+                      <StepsList
+                        tab="matching"
+                        sample={SAMPLE_FILES.matching}
+                      />
                     </Tab>
                   </Tabs>
                 </ModalBody>
 
-                <ModalFooter className="items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-default-400">
-                    <Sparkles className="h-4 w-4" />
-                    <span>
-                      提示：示例文件支持自定义替换，可结合需求准备专属 Excel。
-                    </span>
-                  </div>
+                <ModalFooter className="justify-end">
                   <Button color="primary" onPress={handleClose}>
                     我已了解
                   </Button>
