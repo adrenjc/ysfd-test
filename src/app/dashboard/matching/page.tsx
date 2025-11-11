@@ -46,6 +46,7 @@ import { useNotifications } from "@/stores/app"
 import { usePermissions } from "@/stores/auth"
 import { buildApiUrl, API_ROUTES, getAuthOnlyHeaders } from "@/lib/api"
 import { getAuthHeaders } from "@/lib/auth"
+import { HowToUseGuide } from "@/components/how-to-use-guide"
 import dynamic from "next/dynamic"
 
 interface ProductTemplate {
@@ -730,6 +731,7 @@ function MatchingPage() {
           <p className="text-default-500">上传批发清单，AI智能匹配官方商品库</p>
         </div>
         <div className="flex gap-2">
+          <HowToUseGuide defaultTab="matching" />
           <Button
             variant="flat"
             startContent={<RefreshCw className="h-4 w-4" />}

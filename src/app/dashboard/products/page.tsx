@@ -73,6 +73,7 @@ import { ProductForm } from "@/components/product"
 import ProductSearchBar, {
   SearchFilters,
 } from "@/components/product/product-search-bar"
+import { HowToUseGuide } from "@/components/how-to-use-guide"
 // 动态导入 EmptyState 以避免 hydration 错误
 const EmptyState = dynamic(
   () =>
@@ -831,6 +832,7 @@ export default function ProductsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            <HowToUseGuide defaultTab="product" />
             <Button
               variant="flat"
               startContent={<RefreshCw className="h-4 w-4" />}
