@@ -42,7 +42,6 @@ import {
 } from "lucide-react"
 import { FileUpload } from "@/components/ui/file-upload"
 import { EmptyState } from "@/components/ui/empty-state"
-import { PERMISSIONS } from "@/constants"
 import { useNotifications } from "@/stores/app"
 import { usePermissions } from "@/stores/auth"
 import { buildApiUrl, API_ROUTES, getAuthOnlyHeaders } from "@/lib/api"
@@ -189,10 +188,9 @@ function MatchingPage() {
   // 通知系统
   const notifications = useNotifications()
   const { hasPermission } = usePermissions()
-  const canCreateMatching = hasPermission(PERMISSIONS.MATCHING_CREATE)
+  const canCreateMatching = hasPermission("matching.create")
   const canReviewMatching =
-    hasPermission(PERMISSIONS.MATCHING_REVIEW) ||
-    hasPermission(PERMISSIONS.MATCHING_CONFIRM)
+    hasPermission("matching.review") || hasPermission("matching.confirm")
   const canViewMatching = canCreateMatching || canReviewMatching
   const defaultNoAccessMessage =
     "当前角色暂无匹配任务权限，请联系系统管理员开通。"

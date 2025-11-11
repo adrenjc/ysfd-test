@@ -7,8 +7,14 @@ import type {
   RegisterPayload,
   ForgotPasswordPayload,
 } from "@/types"
-import { ROLE_PERMISSIONS, STORAGE_KEYS } from "@/constants"
+import { STORAGE_KEYS } from "@/constants"
 import { buildApiUrl } from "@/lib/api"
+import {
+  createRolePermissionsMap,
+  fetchPermissionManifest,
+  PermissionsManifest,
+  RolePermissionsMap,
+} from "@/lib/permissions"
 
 interface AuthState {
   user: User | null
@@ -18,6 +24,8 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   isInitialized: boolean
+  permissionManifest: PermissionsManifest | null
+  rolePermissions: RolePermissionsMap
 }
 
 interface AuthActions {
@@ -32,6 +40,7 @@ interface AuthActions {
   clearError: () => void
   setUser: (user: User | null) => void
   setLoading: (loading: boolean) => void
+  loadPermissionManifest: (force?: boolean) => Promise<RolePermissionsMap | null>
 }
 
 type AuthStore = AuthState & AuthActions
@@ -44,9 +53,15 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isInitialized: false,
+  permissionManifest: null,
+  rolePermissions: {},
 }
 
-const resolveUserPermissions = (user: User | null, fallback?: User | null) => {
+const resolveUserPermissions = (
+  user: User | null,
+  fallback?: User | null,
+  rolePermissions?: RolePermissionsMap
+) => {
   if (!user) return user
 
   if (user.permissions && user.permissions.length > 0) {
@@ -57,8 +72,7 @@ const resolveUserPermissions = (user: User | null, fallback?: User | null) => {
     return { ...user, permissions: fallback.permissions }
   }
 
-  const rolePerms =
-    ROLE_PERMISSIONS?.[user.role as keyof typeof ROLE_PERMISSIONS]
+  const rolePerms = rolePermissions?.[user.role] ?? []
   return { ...user, permissions: rolePerms ? [...rolePerms] : [] }
 }
 
@@ -77,6 +91,39 @@ export const useAuthStore = create<AuthStore>()(
     persist(
       (set, get) => ({
         ...initialState,
+        loadPermissionManifest: async (force = false) => {
+          const state = get()
+
+          if (state.permissionManifest && !force) {
+            return state.rolePermissions
+          }
+
+          const token =
+            state.token ||
+            (typeof window !== "undefined"
+              ? localStorage.getItem(STORAGE_KEYS.TOKEN)
+              : null)
+
+          if (!token) {
+            return state.rolePermissions
+          }
+
+          try {
+            const manifest = await fetchPermissionManifest()
+            const derivedRolePermissions =
+              createRolePermissionsMap(manifest)
+
+            set({
+              permissionManifest: manifest,
+              rolePermissions: derivedRolePermissions,
+            })
+
+            return derivedRolePermissions
+          } catch (error) {
+            console.error("Failed to load permission manifest:", error)
+            return null
+          }
+        },
 
         initializeAuth: async () => {
           if (typeof window === "undefined") return
@@ -91,6 +138,9 @@ export const useAuthStore = create<AuthStore>()(
             get().logout()
             return
           }
+
+          await get().loadPermissionManifest()
+          const rolePermissions = get().rolePermissions
 
           try {
             const payload = JSON.parse(atob(storedToken.split(".")[1]))
@@ -135,7 +185,8 @@ export const useAuthStore = create<AuthStore>()(
               if (remoteUser) {
                 const normalizedRemote = resolveUserPermissions(
                   remoteUser,
-                  storedUserParsed
+                  storedUserParsed,
+                  rolePermissions
                 )
                 resolvedUser = normalizedRemote
                 localStorage.setItem(
@@ -158,7 +209,8 @@ export const useAuthStore = create<AuthStore>()(
 
           const normalizedUser = resolveUserPermissions(
             resolvedUser,
-            storedUserParsed
+            storedUserParsed,
+            rolePermissions
           )
 
           if (typeof window !== "undefined" && normalizedUser) {
@@ -192,7 +244,23 @@ export const useAuthStore = create<AuthStore>()(
             if (response.ok && data.success && data.data) {
               const { user, tokens } = data.data
               const { accessToken, refreshToken } = tokens
-              const normalizedUser = resolveUserPermissions(user)
+              if (typeof window !== "undefined") {
+                localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
+                localStorage.setItem(
+                  STORAGE_KEYS.REFRESH_TOKEN,
+                  refreshToken
+                )
+              } else {
+                set({ token: accessToken, refreshToken })
+              }
+
+              await get().loadPermissionManifest(true)
+              const rolePermissions = get().rolePermissions
+              const normalizedUser = resolveUserPermissions(
+                user,
+                undefined,
+                rolePermissions
+              )
 
               set({
                 user: normalizedUser,
@@ -205,8 +273,6 @@ export const useAuthStore = create<AuthStore>()(
               })
 
               if (typeof window !== "undefined") {
-                localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
-                localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
                 localStorage.setItem(
                   STORAGE_KEYS.USER,
                   JSON.stringify(normalizedUser)
@@ -248,7 +314,23 @@ export const useAuthStore = create<AuthStore>()(
             if (response.ok && data.success && data.data) {
               const { user, tokens } = data.data
               const { accessToken, refreshToken } = tokens
-              const normalizedUser = resolveUserPermissions(user)
+              if (typeof window !== "undefined") {
+                localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
+                localStorage.setItem(
+                  STORAGE_KEYS.REFRESH_TOKEN,
+                  refreshToken
+                )
+              } else {
+                set({ token: accessToken, refreshToken })
+              }
+
+              await get().loadPermissionManifest(true)
+              const rolePermissions = get().rolePermissions
+              const normalizedUser = resolveUserPermissions(
+                user,
+                undefined,
+                rolePermissions
+              )
 
               set({
                 user: normalizedUser,
@@ -260,8 +342,6 @@ export const useAuthStore = create<AuthStore>()(
               })
 
               if (typeof window !== "undefined") {
-                localStorage.setItem(STORAGE_KEYS.TOKEN, accessToken)
-                localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken)
                 localStorage.setItem(
                   STORAGE_KEYS.USER,
                   JSON.stringify(normalizedUser)
@@ -385,11 +465,21 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         setUser: (user: User | null) => {
-          set({ user })
+          const rolePermissions = get().rolePermissions
+          const normalizedUser = resolveUserPermissions(
+            user,
+            undefined,
+            rolePermissions
+          )
+
+          set({ user: normalizedUser })
 
           if (typeof window !== "undefined") {
-            if (user) {
-              localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user))
+            if (normalizedUser) {
+              localStorage.setItem(
+                STORAGE_KEYS.USER,
+                JSON.stringify(normalizedUser)
+              )
             } else {
               localStorage.removeItem(STORAGE_KEYS.USER)
             }

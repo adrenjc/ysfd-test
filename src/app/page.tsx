@@ -3,9 +3,8 @@
 import { useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthStore, usePermissions } from "@/stores/auth"
-import { ROUTES, ROLE_PERMISSIONS } from "@/constants"
+import { ROUTES } from "@/constants"
 import { Spinner, Button, Card, CardBody } from "@nextui-org/react"
-import { STORAGE_KEYS } from "@/constants"
 import { resolveWorkspaceFallback } from "@/lib/navigation"
 
 // 开发模式配置
@@ -14,7 +13,7 @@ const SKIP_AUTH = process.env.NEXT_PUBLIC_SKIP_AUTH === "true"
 
 export default function HomePage() {
   const router = useRouter()
-  const { isAuthenticated, token, setUser, logout, isInitialized } =
+  const { isAuthenticated, token, logout, isInitialized, rolePermissions } =
     useAuthStore()
   const { permissions, role } = usePermissions()
   const { route: fallbackRoute, hasAccessibleMenu } = useMemo(
@@ -31,7 +30,7 @@ export default function HomePage() {
         username: "开发者",
         email: "dev@example.com",
         role: "admin" as const,
-        permissions: ROLE_PERMISSIONS.admin,
+        permissions: rolePermissions.admin ?? [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
