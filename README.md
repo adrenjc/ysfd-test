@@ -110,42 +110,49 @@ src/
 ## 🎨 主要功能
 
 ### 🔐 认证系统
+
 - 用户登录/登出
 - JWT 令牌管理
 - 权限控制
 - 会话管理
 
 ### 📊 仪表板
+
 - 实时数据统计
 - 系统性能监控
 - 最近任务状态
 - 价格预警信息
 
 ### 📦 商品管理
+
 - 商品信息维护
 - 批量导入/导出
 - 商品状态管理
 - 关键词标签
 
 ### 🤖 智能匹配
+
 - 文件上传匹配
 - 匹配配置设置
 - 实时进度监控
 - 结果预览
 
 ### ✅ 审核中心
+
 - 匹配结果审核
 - 批量操作
 - 审核历史
 - 优先级管理
 
 ### 💰 价格管理
+
 - 价格变动监控
 - 预警设置
 - 趋势分析
 - 批量更新
 
 ### 📈 数据报表
+
 - 匹配准确率统计
 - 效率分析
 - 趋势图表
@@ -179,7 +186,7 @@ import { useAuthStore } from "@/stores/auth"
 
 export function MyComponent() {
   const { user, login, logout } = useAuthStore()
-  
+
   return (
     <div>
       {user ? (
@@ -201,10 +208,10 @@ import useSWR from "swr"
 
 export function ProductList() {
   const { data, error, isLoading } = useSWR("/api/products")
-  
+
   if (isLoading) return <div>加载中...</div>
   if (error) return <div>加载失败</div>
-  
+
   return (
     <div>
       {data?.products?.map(product => (
@@ -225,13 +232,11 @@ import { useRouter } from "next/navigation"
 
 export function Navigation() {
   const router = useRouter()
-  
+
   return (
     <nav>
       <Link href="/dashboard">仪表板</Link>
-      <button onClick={() => router.push("/products")}>
-        商品管理
-      </button>
+      <button onClick={() => router.push("/products")}>商品管理</button>
     </nav>
   )
 }
@@ -246,7 +251,7 @@ import { useTheme } from "next-themes"
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  
+
   return (
     <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
       切换主题
@@ -260,7 +265,7 @@ export function ThemeToggle() {
 使用 Tailwind CSS 进行响应式开发：
 
 ```tsx
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
   <Card className="col-span-1 md:col-span-2">内容</Card>
 </div>
 ```
@@ -288,26 +293,13 @@ pnpm format
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 创建 Pull Request
 
-
-## 📞 支持
-
-如有问题或建议，请通过以下方式联系：
-
-- 提交 Issue
-- 发送邮件至 support@smartmatch.com
-- 访问项目文档站点
-
----
-
-© 2024 Smart Match System. All rights reserved.
-
 ## 🚢 部署
 
 本仓库提供 `scripts/deploy.sh` 与 `.github/workflows/deploy.yml`，可用于构建后将 `out/` 目录同步到服务器静态目录。使用方式：
 
-1. 在服务器上准备 SSH 账号并配置 `DEPLOY_HOST`、`DEPLOY_USER`、`DEPLOY_PATH` 等环境变量/仓库密钥  
-2. 根据实际域名调整 `deploy/` 下的 Nginx 示例配置  
-3. 本地推送或通过 GitHub Actions 触发部署时，脚本会自动执行 `pnpm run deploy:build` 并使用 `rsync` 同步  
+1. 在服务器上准备 SSH 账号并配置 `DEPLOY_HOST`、`DEPLOY_USER`、`DEPLOY_PATH` 等环境变量/仓库密钥
+2. 根据实际域名调整 `deploy/` 下的 Nginx 示例配置
+3. 本地推送或通过 GitHub Actions 触发部署时，脚本会自动执行 `pnpm run deploy:build` 并使用 `rsync` 同步
 4. 若只需同步已构建的 `out/`，设置环境变量 `SKIP_BUILD=1`
 
 > 以上流程仅作为示例，具体部署策略请结合自身基础设施进行裁剪。
